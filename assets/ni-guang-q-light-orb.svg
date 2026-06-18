@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 192" role="img" aria-labelledby="title desc">
+  <title id="title">Ni Guang Q upward light orb projectile</title>
+  <desc id="desc">A transparent-background light orb projectile that initially flies upward, with a trailing glow below it.</desc>
+  <defs>
+    <radialGradient id="orb" cx="42%" cy="36%" r="62%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.23" stop-color="#fffbd0"/>
+      <stop offset="0.58" stop-color="#ffe04c"/>
+      <stop offset="1" stop-color="#ff9d22"/>
+    </radialGradient>
+    <linearGradient id="tailCore" x1="64" y1="188" x2="64" y2="66" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4ff8ff" stop-opacity="0"/>
+      <stop offset="0.38" stop-color="#7ffcff" stop-opacity="0.48"/>
+      <stop offset="0.72" stop-color="#fff9a6" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="tailSide" x1="64" y1="172" x2="64" y2="74" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5cf4ff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#66f5ff" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#fff4a8" stop-opacity="0.82"/>
+    </linearGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="orbGlow" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="11" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.98  0 1 0 0 0.86  0 0 1 0 0.28  0 0 0 0.9 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g opacity="0.86" filter="url(#softGlow)">
+    <path d="M63 184C43 145 44 108 61 72c18 35 19 73 2 112z" fill="url(#tailCore)"/>
+    <path d="M35 171c7-39 18-70 31-95 0 38-11 70-31 95z" fill="url(#tailSide)" opacity="0.72"/>
+    <path d="M93 171c-7-39-18-70-31-95 0 38 11 70 31 95z" fill="url(#tailSide)" opacity="0.72"/>
+    <path d="M64 176c-6-31-5-62 0-91 7 32 7 62 0 91z" fill="#ffffff" opacity="0.35"/>
+  </g>
+
+  <g filter="url(#orbGlow)">
+    <circle cx="64" cy="58" r="42" fill="#fff36c" opacity="0.36"/>
+    <circle cx="64" cy="58" r="31" fill="url(#orb)"/>
+    <circle cx="52" cy="46" r="10" fill="#ffffff" opacity="0.95"/>
+    <circle cx="76" cy="66" r="14" fill="#ffc32b" opacity="0.38"/>
+  </g>
+
+  <path d="M64 8l8 25 26 1-21 15 8 25-21-15-21 15 8-25-21-15 26-1z" fill="#ffffff" opacity="0.9" filter="url(#softGlow)"/>
+  <path d="M98 35l4 12 13 1-11 7 4 13-10-8-11 8 4-13-11-7 13-1z" fill="#fff7a0" opacity="0.8"/>
+  <path d="M28 82l5 14 15 1-12 9 4 15-12-9-13 9 5-15-12-9 15-1z" fill="#baffff" opacity="0.7"/>
+  <circle cx="22" cy="44" r="4" fill="#efffff" opacity="0.82"/>
+  <circle cx="106" cy="96" r="5" fill="#fff6a9" opacity="0.82"/>
+</svg>

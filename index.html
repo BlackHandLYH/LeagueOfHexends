@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>六边形 1v1 回合战棋 Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <section id="startMenu" class="start-menu" aria-label="开始菜单">
+      <div class="start-dialog">
+        <h1>激战联盟 Demo</h1>
+        <div class="start-grid">
+          <label>
+            <span>友军数量</span>
+            <select id="allyCount">
+              <option value="1">1</option>
+              <option value="2" selected="selected">2</option>
+              <option value="3">3</option>
+            </select>
+          </label>
+          <label>
+            <span>敌人数量</span>
+            <select id="enemyCount">
+              <option value="1">1</option>
+              <option value="2" selected="selected">2</option>
+              <option value="3">3</option>
+            </select>
+          </label>
+        </div>
+        <div>
+          <h2>选择本局友军</h2>
+          <div id="heroPicker" class="hero-picker"></div>
+        </div>
+        <button id="startButton" class="start-button" type="button">开始游戏</button>
+      </div>
+    </section>
+
+    <main class="app-shell">
+      <section class="battle-layout" aria-label="棋盘与战斗信息">
+        <aside class="info-panel" aria-label="战斗状态">
+          <div class="stat-block">
+            <span class="stat-label">当前战场时间</span>
+            <strong id="battleTick">0</strong>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">战场时间行动条</span>
+            <div id="intensity" class="time-meter" role="meter" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0">
+              <span id="intensityFill" class="time-meter-fill"></span>
+              <span id="intensityText" class="time-meter-text">0 / 1000</span>
+            </div>
+          </div>
+          <div class="stat-block current-turn">
+            <span class="stat-label">当前行动方</span>
+            <strong id="currentActor">行动条推进中</strong>
+          </div>
+          <div id="fighterList" class="fighter-list"></div>
+        </aside>
+
+        <section class="board-column">
+          <div class="board-wrap">
+            <div id="eventToast" class="event-toast" aria-live="polite"></div>
+            <svg id="board" class="hex-board" role="img" aria-label="六边形棋盘"></svg>
+            <label class="zoom-control">
+              <span>缩放</span>
+              <input id="boardZoom" type="range" min="1" max="2.8" step="0.05" value="1" />
+            </label>
+          </div>
+          <div id="targetHint" class="target-hint">等待行动条推进</div>
+        </section>
+
+        <aside class="side-panel" aria-label="操作、战斗记录和行动条">
+          <section class="control-section">
+            <h2>控制区</h2>
+            <div id="actionPanel" class="action-panel"></div>
+            <button id="restartButton" class="restart-button" type="button" hidden="hidden">重新开始</button>
+          </section>
+          <section class="log-section">
+            <h2>战斗日志</h2>
+            <ol id="battleLog" class="battle-log"></ol>
+          </section>
+          <section class="timeline-section">
+            <h2>行动条</h2>
+            <div class="timeline-track">
+              <div class="timeline-end"></div>
+              <div id="timelineTokens"></div>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+    <div id="floatingTooltip" class="floating-tooltip" role="tooltip"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
