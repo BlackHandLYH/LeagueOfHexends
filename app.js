@@ -8,6 +8,19 @@ const BATTLEFIELD_TIME_SPEED = 100;
 const BATTLEFIELD_TIME_ID = "battlefield-time";
 const SQRT_3 = Math.sqrt(3);
 const LIGHT_ORB_ASSET = "assets/ni-guang-q-light-orb.svg";
+const HOURGLASS_ASSET = "assets/沙漏.svg";
+const ICON_ASSETS = {
+  attack: "assets/攻击.svg",
+  skill: "assets/技能.svg",
+  move: "assets/移动.svg",
+  time: "assets/时间.svg",
+  heal: "assets/治疗.svg",
+  shield: "assets/护盾.svg",
+  action: "assets/行动.svg",
+  skip: "assets/跳过.svg",
+  health: "assets/生命.svg",
+  attackRange: "assets/攻击距离.svg",
+};
 const LINE_HEX_MIN_INTERSECTION = HEX_SIZE * 0.28;
 
 const DIRECTIONS = [
@@ -33,13 +46,13 @@ const HEROES = {
     moveMode: "自由移动",
     passive: {
       name: "光芒四射",
-      description: "伤害性技能会标记目标3个战场时间。普通攻击消耗标记造成额外12伤害。终极闪光命中时先消耗标记再刷新标记。",
+      description: "伤害性技能会使目标获得【光芒四射】，持续3个回合。拉克丝的普通攻击或终极闪光会消耗该状态，造成额外12点伤害；终极闪光命中后会重新施加【光芒四射】。",
     },
     skills: {
-      q: skill("Q", "光之束缚", "direction", "非指向性 / 投射物 / 控制", "选择射程内目标点发射直线光球，施放时完成飞行结算。命中前两个敌人，造成18伤害并禁锢2个战场时间。", 3, 18, 6, { projectileSpeed: 2, rootDuration: 2, maxDistance: 6, maxHits: 2 }),
-      w: skill("W", "棱光护盾", "shieldLine", "方向 / 投射物 / 护盾", "选择射程内目标点投出护盾光球，使投射物经过的所有友军以及你光自身获得20点护盾，持续3个战场时间。", 4, 0, 6, { shield: 20, duration: 3, maxDistance: 6 }),
-      e: skill("E", "光辉领域", "luxField", "范围 / 持续 / 减速 / 引爆", "选择4格内一个格子，目标格及相邻1格形成光辉领域，持续2个战场时间。领域内敌人行动速度降低30%。领域存在时再次释放会引爆领域，造成22伤害并结束领域。冷却从领域消失后开始计算。", 4, 22, 4, { areaRadius: 1, duration: 2, slow: 0.3 }),
-      r: skill("R", "终极闪光", "beam", "方向 / 射线", "选择任意方向发射射程无限的直线射线，对路径上的所有敌人造成28伤害。命中时先消耗光芒四射标记再刷新标记。", 10, 28, 99, { maxDistance: 26 }),
+      q: skill("Q", "光之束缚", "direction", "非指向性 / 投射物 / 控制", "选择任意方向发射光球，光球会飞至最远射程。对命中的前两个敌人造成18点伤害，并使其获得【禁锢】，持续2个回合。", 3, 18, 6, { projectileSpeed: 2, rootDuration: 2, maxDistance: 6, maxHits: 2 }),
+      w: skill("W", "棱光护盾", "shieldLine", "投射物 / 护盾", "选择任意方向投出护盾光球，光球会飞至最远射程。拉克丝自身与光球经过的友军获得20点护盾，持续3个回合。", 4, 0, 6, { shield: 20, duration: 3, maxDistance: 6 }),
+      e: skill("E", "光辉领域", "luxField", "范围 / 持续 / 减速 / 引爆", "选择4格内目标点生成光辉领域，目标格及相邻1格成为领域范围，持续2个回合。领域内敌人行动速度降低30%。领域存在时再次施放会引爆领域，造成22点伤害并结束领域。", 4, 22, 4, { areaRadius: 1, duration: 2, slow: 0.3 }),
+      r: skill("R", "终极闪光", "beam", "方向 / 射线", "选择任意方向发射射程无限的直线射线，对路径上的所有敌人造成28点伤害。命中时先消耗【光芒四射】，再重新施加【光芒四射】。", 10, 28, 99, { maxDistance: 26 }),
       flash: flashSkill(),
     },
   },
@@ -58,10 +71,10 @@ const HEROES = {
       description: "技能命中敌人会积攒旋风烈斩。2层后，Q和E会变为强化技能并消耗所有层数。",
     },
     skills: {
-      q: skill("Q", "斩钢闪", "yasuoQ", "方向 / 近战", "选择任意方向，攻击直线路径上2格范围内的所有敌人。若成功命中，获得1层旋风烈斩；2层时变为旋风斩。", 1, 14, 2, { empoweredName: "旋风斩", empoweredRange: 6, airborneDuration: 2 }),
-      w: skill("W", "风之障壁", "windWall", "范围 / 持续 / 屏障", "在相邻边界生成宽度3的风墙，持续3个战场时间，阻挡敌方投射物。", 3, 0, 1, { duration: 3, width: 3 }),
-      e: skill("E", "踏前斩", "yasuoE", "方向 / 位移 / 近战", "选择任意方向上距离3格的空格作为落点，沿直线移动并斩击经过的敌人。若成功命中，获得1层旋风烈斩；2层时变为旋风击。", 1, 12, 3, { empoweredName: "旋风击", empoweredRange: 2, airborneDuration: 2 }),
-      r: skill("R", "狂风绝息斩", "yasuoR", "浮空 / 位移 / 爆发", "选择10格内处于浮空的敌人，瞬移到其身边，对目标及周围2格造成大量伤害，并移除命中敌人的浮空。", 6, 30, 10, { areaRadius: 2 }),
+      q: skill("Q", "斩钢闪", "yasuoQ", "方向 / 近战", "选择任意方向，斩击直线路径上2格范围内的所有敌人，造成14点伤害。若命中敌人，获得1层【旋风烈斩】；达到2层时，本技能变为【旋风斩】。", 1, 14, 2, { empoweredName: "旋风斩", empoweredRange: 6, airborneDuration: 2 }),
+      w: skill("W", "风之障壁", "windWall", "屏障 / 持续", "在相邻边界生成宽度3的风墙，持续3个回合。风墙会阻挡敌方投射物。", 3, 0, 1, { duration: 3, width: 3 }),
+      e: skill("E", "踏前斩", "yasuoE", "方向 / 位移 / 近战", "选择任意方向上距离3格的空格作为落点，沿直线路径突进并斩击经过的敌人，造成12点伤害。若命中敌人，获得1层【旋风烈斩】；达到2层时，本技能变为【旋风击】。", 1, 12, 3, { empoweredName: "旋风击", empoweredRange: 2, airborneDuration: 2 }),
+      r: skill("R", "狂风绝息斩", "yasuoR", "浮空 / 位移 / 爆发", "选择10格内处于【浮空】的敌人，瞬移到其身边，对目标及周围2格内的敌人造成30点伤害，并移除命中敌人的【浮空】。", 6, 30, 10, { areaRadius: 2 }),
       flash: flashSkill(),
     },
   },
@@ -81,10 +94,10 @@ const HEROES = {
       description: "女枪攻击一个新目标时，额外造成7点伤害。",
     },
     skills: {
-      q: skill("Q", "一箭双雕", "mfQ", "投射物", "选定攻击范围内一名目标发射炮弹。施放时完成飞行结算，命中后若目标身后2格锥形范围内有其他敌人，则向距离最近的随机目标弹射。", 3, 14, 4, { projectileSpeed: 3 }),
-      w: skill("W", "大步流星", "mfW", "瞬发 / 加速", "主动：立刻触发并叠满被动加速，本局 demo 中获得50%行动速度加成直到受到伤害。被动每层提供5%行动速度。", 6, 0, 0),
-      e: skill("E", "枪林弹雨", "zone", "范围 / 持续", "选择目标点，半径2范围内立刻并在每次战场时间结算时造成8伤害，持续2次战场时间。范围内敌人行动速度-20%。", 6, 8, 4, { areaRadius: 2, duration: 2, slow: 0.2 }),
-      r: skill("R", "弹幕时间", "cone", "范围 / 引导", "选择任意方向，对该方向30度夹角内的5格范围立刻造成12伤害，并进入引导中：弹幕时间，持续2次战场时间。后续仅在行动开始时选择继续引导才会再次结算伤害。", 12, 12, 5, { duration: 2, coneAngle: 30 }),
+      q: skill("Q", "一箭双雕", "mfQ", "投射物 / 弹射", "选择攻击范围内一名敌人发射炮弹，造成14点伤害。命中后，若目标身后2格锥形范围内存在其他敌人，则弹射至距离最近的目标并造成12点伤害。", 3, 14, 4, { projectileSpeed: 3 }),
+      w: skill("W", "大步流星", "mfW", "瞬发 / 加速", "被动：未受到伤害时，女枪逐步获得行动速度加成。\n主动：立刻获得50%行动速度加成，直到受到伤害。", 6, 0, 0),
+      e: skill("E", "枪林弹雨", "zone", "范围 / 持续 / 减速", "选择目标点降下弹雨，半径2范围内的敌人立刻受到8点伤害。弹雨持续2个回合。每个回合结算时再次造成8点伤害；范围内敌人行动速度降低20%。", 6, 8, 4, { areaRadius: 2, duration: 2, slow: 0.2 }),
+      r: skill("R", "弹幕时间", "cone", "范围 / 引导", "选择任意方向开始扫射，对该方向30度夹角内5格范围的敌人造成12点伤害。至多引导2个回合。每次继续引导时，再次结算伤害。", 12, 12, 5, { duration: 2, coneAngle: 30 }),
       flash: flashSkill(),
     },
   },
@@ -104,16 +117,24 @@ const HEROES = {
       description: "佐伊施放技能后的下一次普通攻击额外造成8点伤害。",
     },
     skills: {
-      q: skill("Q", "飞星乱入", "zoeQ", "投射物", "首次选择4格内目标点发射飞星，施放时完成飞行结算。飞星每累计走过1格距离，伤害增加15%。命中敌人后，对命中目标1格范围内其他敌人造成50%溅射伤害。飞星抵达位置后停留2次战场时间，期间可再次指定新目标点。", 3, 16, 4, { projectileSpeed: 4, recastWindow: 2, pauseDuration: 2, damagePerCell: 0.15 }),
-      w: skill("W", "窃法巧手", "zoeW", "法术碎片", "佐伊可拾取地图上的法术碎片。本 demo 中碎片为一次性闪现；没有碎片时使用不会产生效果。", 0, 0, 0),
-      e: skill("E", "催眠气泡", "zoeE", "投射物 / 控制", "选择攻击范围内目标点发射气泡。施放时完成飞行结算，直接命中或陷阱触发会施加困倦，下次战场时间结算转为昏睡2次战场时间。", 5, 0, 4, { projectileSpeed: 1, trapDuration: 2 }),
-      r: skill("R", "折返跃迁", "zoeR", "位移 / 瞬发", "选择4格内指定位置，立刻传送到该位置。下次行动结束后返回原位置。", 6, 0, 4),
+      q: skill("Q", "飞星乱入", "zoeQ", "投射物 / 爆发", "首次施放：选择4格内目标点发射飞星。飞星每飞行1格，伤害提高15%。命中敌人后，造成16点基础伤害，并对目标1格范围内其他敌人造成50%溅射伤害。飞星抵达目标点后停留2个回合。\n再次施放：在飞星停留期间，重新指定飞星飞向新的目标点。", 3, 16, 4, { projectileSpeed: 4, recastWindow: 2, pauseDuration: 2, damagePerCell: 0.15 }),
+      w: skill("W", "窃法巧手", "zoeW", "法术碎片", "被动：佐伊可以拾取地图上的法术碎片。\n主动：若持有法术碎片，消耗碎片并施放对应效果。本版本的法术碎片为一次性闪现。", 0, 0, 0),
+      e: skill("E", "催眠气泡", "zoeE", "投射物 / 控制 / 陷阱", "选择攻击范围内目标点发射气泡。气泡命中敌人或陷阱触发时，使目标获得【困倦】；下个回合结算时，【困倦】转化为【昏睡】，持续2个回合。若气泡抵达目标点时未命中敌人，则生成半径1的陷阱，持续2个回合。", 5, 0, 4, { projectileSpeed: 1, trapDuration: 2 }),
+      r: skill("R", "折返跃迁", "zoeR", "位移 / 瞬发", "选择4格内指定位置，立刻传送到该位置。佐伊会在下次行动结束后返回原位置。", 6, 0, 4),
       flash: flashSkill(),
     },
   },
 };
 
 const HERO_ORDER = ["lux", "yasuo", "mf", "zoe"];
+const SKILL_ORDER = ["q", "w", "e", "r"];
+
+const HERO_PROFILES = {
+  lux: { role: "后排法师", summary: "远程控制 / 护盾保护 / 区域压制" },
+  yasuo: { role: "近战剑客", summary: "直线斩击 / 位移穿插 / 浮空爆发" },
+  mf: { role: "火力射手", summary: "弹射收割 / 范围压制 / 引导扫射" },
+  zoe: { role: "机动法师", summary: "飞星爆发 / 催眠控制 / 折返位移" },
+};
 
 const els = {
   startMenu: document.getElementById("startMenu"),
@@ -136,6 +157,10 @@ const els = {
   battleLog: document.getElementById("battleLog"),
   timelineTokens: document.getElementById("timelineTokens"),
   floatingTooltip: document.getElementById("floatingTooltip"),
+  gameResultOverlay: document.getElementById("gameResultOverlay"),
+  gameResultTitle: document.getElementById("gameResultTitle"),
+  gameResultHeroes: document.getElementById("gameResultHeroes"),
+  gameResultButton: document.getElementById("gameResultButton"),
 };
 
 let gridLayer;
@@ -172,7 +197,7 @@ function skill(key, name, kind, tags, description, cooldown, damage, range, extr
 }
 
 function flashSkill() {
-  return skill("闪现", "闪现", "flash", "召唤师技能 / 位移", "移动至3格范围内任意空格。释放后可立即再次行动。禁锢或晕眩时不可用，冷却6次战场时间。", 6, 0, 3);
+  return skill("闪现", "闪现", "flash", "召唤师技能 / 位移", "移动至3格范围内任意空格。释放后可立即再次行动。禁锢或晕眩时不可用。", 6, 0, 3);
 }
 
 function createState(characters) {
@@ -199,7 +224,11 @@ function createState(characters) {
     idCounter: 1,
     unitClasses: {},
     baseViewBox: null,
+    viewCenter: null,
+    boardDrag: null,
+    suppressBoardClick: false,
     zoom: 1,
+    pendingLog: null,
   };
 }
 
@@ -225,9 +254,15 @@ function bindEvents() {
   els.allyCount.addEventListener("change", syncHeroSelectionLimit);
   els.startButton.addEventListener("click", startGameFromMenu);
   els.restartButton.addEventListener("click", showStartMenu);
+  els.gameResultButton.addEventListener("click", showStartMenu);
+  els.board.addEventListener("mousedown", handleBoardDragStart);
   els.board.addEventListener("mousemove", handleBoardPointerMove);
   els.board.addEventListener("click", handleBoardPointerClick);
+  window.addEventListener("mousemove", handleBoardDragMove);
+  window.addEventListener("mouseup", handleBoardDragEnd);
+  window.addEventListener("wheel", handleTooltipWheel, { passive: false });
   els.boardZoom.addEventListener("input", () => {
+    state.viewCenter = currentViewCenter();
     state.zoom = Number(els.boardZoom.value);
     applyBoardViewBox();
   });
@@ -237,17 +272,20 @@ function renderStartMenu() {
   els.heroPicker.innerHTML = "";
   HERO_ORDER.forEach((key) => {
     const hero = HEROES[key];
+    const profile = HERO_PROFILES[key] || { role: "英雄", summary: "战术单位" };
     const button = document.createElement("button");
     button.type = "button";
     button.className = `hero-card ${selectedHeroKeys.includes(key) ? "selected" : ""}`;
     button.dataset.hero = key;
     button.innerHTML = `
+      <span class="hero-card-pick">已选择</span>
       <img src="${hero.asset}" alt="" />
       <strong>${hero.name}</strong>
-      <span>${hero.attackType === "ranged" ? "远程攻击" : "近战攻击"} · ${hero.moveMode}</span>
-      <span>被动：${hero.passive.name}</span>
+      <span class="hero-card-type">${hero.attackType === "ranged" ? "远程攻击" : "近战攻击"} · ${profile.role}</span>
+      <span class="hero-card-summary">${profile.summary}</span>
     `;
     button.addEventListener("click", () => toggleHeroSelection(key));
+    attachFloatingTooltip(button, heroTooltipContent(key));
     els.heroPicker.append(button);
   });
   syncHeroSelectionLimit();
@@ -297,6 +335,7 @@ function startGameFromMenu() {
   placeTeams();
   buildBoard();
   els.startMenu.classList.add("hidden");
+  hideGameResultOverlay();
   els.restartButton.hidden = true;
   renderAll();
   addLog(`战斗开始：友军 ${selectedHeroKeys.map((key) => HEROES[key].name).join("、")}；敌方 ${enemyKeys.map((key) => HEROES[key].name).join("、")}。`);
@@ -312,6 +351,7 @@ function showStartMenu() {
   buildBoard();
   renderAll();
   els.startMenu.classList.remove("hidden");
+  hideGameResultOverlay();
   els.restartButton.hidden = true;
   els.targetHint.textContent = "请先在开始菜单选择阵容";
 }
@@ -417,9 +457,29 @@ function applyBoardViewBox() {
 }
 
 function focusPoint() {
+  if (state.viewCenter) return state.viewCenter;
   const actor = getCurrentActor() || firstAlive("player") || firstAlive("enemy");
   if (actor) return hexToPixel(actor.position);
   return { x: state.baseViewBox.x + state.baseViewBox.width / 2, y: state.baseViewBox.y + state.baseViewBox.height / 2 };
+}
+
+function currentViewBox() {
+  const value = els.board.getAttribute("viewBox");
+  if (!value) return null;
+  const [x, y, width, height] = value.split(/\s+/).map(Number);
+  if ([x, y, width, height].some((item) => !Number.isFinite(item))) return null;
+  return { x, y, width, height };
+}
+
+function currentViewCenter() {
+  const box = currentViewBox();
+  if (box) return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  return focusPoint();
+}
+
+function clearManualViewCenter() {
+  state.viewCenter = null;
+  state.boardDrag = null;
 }
 
 function renderAll() {
@@ -467,7 +527,8 @@ function renderFighterList() {
     const name = document.createElement("span");
     name.textContent = character.name;
     const hp = document.createElement("strong");
-    hp.textContent = `${Math.max(0, character.hp)} / ${character.maxHp}`;
+    hp.append(uiIconNode("health", "fighter-hp-icon"));
+    hp.append(document.createTextNode(`${Math.max(0, character.hp)} / ${character.maxHp}`));
     heading.append(avatar, name, hp);
 
     const meter = document.createElement("meter");
@@ -481,17 +542,14 @@ function renderFighterList() {
       statChip("攻", character.attackDamage),
       statChip("速", Math.round(effectiveActionSpeed(character))),
       statChip("距", character.attackRange),
+      statChip("移", character.moveRange),
     );
-    const detailText = characterDetailTooltip(character);
-    statMini.title = detailText;
-    attachFloatingTooltip(statMini, detailText);
+    attachFloatingTooltip(statMini, characterDetailTooltip(character));
 
     const passive = document.createElement("span");
     passive.className = "passive-pill";
-    passive.dataset.tooltip = character.passive.description;
-    passive.title = character.passive.description;
     passive.textContent = `被动：${character.passive.name}`;
-    attachFloatingTooltip(passive, character.passive.description);
+    attachFloatingTooltip(passive, passiveTooltipContent(character));
 
     const row = document.createElement("div");
     row.className = "status-row";
@@ -500,14 +558,21 @@ function renderFighterList() {
       const pill = document.createElement("span");
       pill.className = "status-pill mf-passive";
       pill.textContent = `流星 ${mfPassive.layers}层`;
-      attachFloatingTooltip(pill, `大步流星：当前提供 ${Math.round(mfPassive.bonus * 100)}% 行动速度加成。`);
+      attachFloatingTooltip(pill, {
+        eyebrow: "被动状态",
+        title: "大步流星",
+        subtitle: "女枪当前行动速度加成",
+        sections: [
+          { title: "效果", rows: [["行动速度", `+${Math.round(mfPassive.bonus * 100)}%`], ["层数", `${mfPassive.layers}层`]] },
+        ],
+      });
       row.append(pill);
     }
     character.statuses.filter((status) => status.remaining > 0).forEach((status) => {
       const pill = document.createElement("span");
       pill.className = `status-pill ${status.type}`;
       pill.textContent = statusLabel(status);
-      attachFloatingTooltip(pill, statusTooltip(status));
+      attachFloatingTooltip(pill, statusTooltipContent(status, character));
       row.append(pill);
     });
     card.append(heading, meter, statMini, passive, row);
@@ -534,7 +599,7 @@ function renderTimeline() {
   if (!timeToken) {
     timeToken = document.createElement("div");
     timeToken.className = "timeline-token time-token";
-    timeToken.innerHTML = `<span class="time-orb">时</span><span>战场时间</span>`;
+    timeToken.innerHTML = `<img class="timeline-icon icon-time" src="${ICON_ASSETS.time}" alt="" /><span>战斗回合</span>`;
     els.timelineTokens.append(timeToken);
     tokenEls.set(BATTLEFIELD_TIME_ID, timeToken);
   }
@@ -553,23 +618,28 @@ function renderActionPanel() {
   els.actionPanel.innerHTML = "";
   const actor = getCurrentActor();
   if (state.gameOver) {
-    els.restartButton.hidden = false;
+    els.restartButton.hidden = true;
     els.targetHint.textContent = allAlive("enemy").length ? "失败" : "胜利";
+    renderActionWaiting("战斗结束");
     return;
   }
   els.restartButton.hidden = true;
 
   if (!state.started) {
-    addActionButton("等待", "请先在开始菜单选择阵容并开始游戏。", null, true, "", { top: "系统", cooldown: "-", damage: "-", tick: "-" });
+    renderActionWaiting("等待中");
     return;
   }
 
   if (!actor || actor.team !== "player") {
-    addActionButton("等待", "当前不是玩家行动轮次。", null, true, "", { top: "系统", cooldown: "-", damage: "-", tick: "-" });
+    renderActionWaiting("等待中");
     return;
   }
 
   const disabled = state.isAnimating || !actor.isAlive;
+  if (disabled) {
+    renderActionWaiting("等待中");
+    return;
+  }
   const channel = getChannelStatus(actor);
   if (channel) {
     renderChannelPanel(actor, channel, disabled);
@@ -580,16 +650,24 @@ function renderActionPanel() {
     return;
   }
 
-  addActionButton("移动", "普通移动：选择移动范围内空格。", () => prepareMove(actor), disabled || !canMove(actor), "primary", { top: "移动", cooldown: "-", damage: "-", tick: "-", preview: () => buildMovePreview(actor) });
-  addActionButton("攻击", basicAttackTooltip(actor), () => prepareAttack(actor), disabled || !canAttack(actor), "warn", { top: actor.attackType === "ranged" ? "远程普攻" : "近战普攻", cooldown: canAttack(actor) ? "可用" : "后摇中", damage: `伤害 ${expectedBasicDamage(actor)}`, tick: "-", preview: () => buildAttackPreview(actor) });
-  addActionButton("释放技能", "打开技能子菜单。技能标签会显示在各技能 tooltip 中。", () => showSkillMenu(actor), disabled || hasStatus(actor, "stun"), "", { top: "菜单", cooldown: "-", damage: "-", tick: "-" });
-  addActionButton("原地不动", "不移动、不攻击，仅结束当前行动轮次。", () => waitAction(actor), disabled, "", { top: "等待", cooldown: "-", damage: "-", tick: "-" });
+  addActionButton("移动", "普通移动：选择移动距离内空格。", () => prepareMove(actor), !canMove(actor), "primary", { icon: "move", preview: () => buildMovePreview(actor) });
+  addActionButton("攻击", basicAttackTooltip(actor), () => prepareAttack(actor), !canAttack(actor), "warn", { icon: "attack", cooldown: canAttack(actor) ? "可用" : "后摇中", preview: () => buildAttackPreview(actor) });
+  addActionButton("技能", "打开技能子菜单。技能标签会显示在各技能 tooltip 中。", () => showSkillMenu(actor), hasStatus(actor, "stun"), "", { icon: "skill" });
+  addActionButton("跳过", "不移动、不攻击，仅结束当前行动轮次。", () => waitAction(actor), false, "", { icon: "skip" });
+}
+
+function renderActionWaiting(text) {
+  const wait = document.createElement("div");
+  wait.className = "action-waiting";
+  wait.append(uiIconNode("action", "action-waiting-icon"));
+  wait.append(textEl("strong", "", text));
+  els.actionPanel.append(wait);
 }
 
 function renderChannelPanel(actor, channel, disabled) {
   const skillName = channel.skillName || "引导技能";
-  addActionButton(`继续引导${skillName}`, `结算一次${skillName}的引导效果，并结束当前行动轮次。`, () => continueChannelAction(actor), disabled, "primary", { top: "引导", cooldown: `${channel.remaining}次`, damage: channel.damage ? `伤害 ${channel.damage}` : "-", tick: "-" });
-  addActionButton("结束引导", `立刻结束引导中：${skillName}，本轮次可继续选择常规行动。`, () => endChannelAction(actor), disabled, "warn", { top: "引导", cooldown: "结束", damage: "-", tick: "-" });
+  addActionButton(`继续引导${skillName}`, `结算一次${skillName}的引导效果，并结束当前行动轮次。`, () => continueChannelAction(actor), disabled, "primary", { icon: "skill", cooldown: `${channel.remaining}次` });
+  addActionButton("结束引导", `立刻结束引导中：${skillName}，本轮次可继续选择常规行动。`, () => endChannelAction(actor), disabled, "warn", { icon: "skip" });
 }
 
 function renderSkillMenu(actor, disabled) {
@@ -600,8 +678,10 @@ function renderSkillMenu(actor, disabled) {
     const label = luxField ? `${currentSkill.key} 引爆光辉领域` : key === "flash" ? "闪现" : `${currentSkill.key} ${currentSkill.name}`;
     const meta = skillButtonMeta(currentSkill);
     if (luxField) {
-      meta.cooldown = `领域 ${luxField.remaining}`;
-      meta.damage = `引爆 ${currentSkill.damage}`;
+      meta.cooldownValue = luxField.remaining;
+      meta.cooldownLabel = "领域剩余";
+      meta.cooldownState = "field";
+      meta.bottomRight = "";
     }
     meta.preview = () => buildSkillPreview(actor, key);
     addActionButton(label, skillTooltip(currentSkill), () => prepareSkill(actor, key), disabled || !skillUsable(actor, key), key === "q" ? "primary" : key === "flash" ? "warn" : "", meta);
@@ -610,7 +690,7 @@ function renderSkillMenu(actor, disabled) {
     state.selection = null;
     els.targetHint.textContent = "请选择行动";
     renderAll();
-  }, disabled, "", { top: "菜单", cooldown: "-", damage: "-", tick: "-" });
+  }, disabled, "", {});
 }
 
 function addActionButton(label, tooltip, handler, disabled = false, className = "", meta = {}) {
@@ -618,18 +698,53 @@ function addActionButton(label, tooltip, handler, disabled = false, className = 
   button.type = "button";
   button.className = `action-button ${className}`.trim();
   button.disabled = disabled;
-  button.dataset.tooltip = tooltip;
-  button.append(actionSpan("action-meta action-tag", meta.top || "行动"));
-  button.append(actionSpan("action-meta action-cooldown", meta.cooldown || "-"));
-  button.append(actionSpan("action-name", label));
-  button.append(actionSpan("action-damage", meta.damage || "-"));
-  button.append(actionSpan("action-tick", meta.tick || (meta.tickCost ? "+1" : "～")));
+  if (meta.top) button.append(actionSpan("action-meta action-tag", meta.top));
+  const cooldown = actionCooldownNode(meta);
+  if (cooldown) button.append(cooldown);
+  button.append(actionNameNode(label, meta.icon));
+  if (meta.damage) button.append(actionSpan("action-damage", meta.damage));
+  if (meta.bottomRight || meta.tick) button.append(richTextEl("span", "action-tick", meta.bottomRight || meta.tick));
   if (handler && !disabled) button.addEventListener("click", handler);
+  attachFloatingTooltip(button, actionTooltipContent(label, tooltip, meta));
   if (meta.preview && !disabled) {
     button.addEventListener("mouseenter", () => showButtonPreview(meta.preview));
     button.addEventListener("mouseleave", clearButtonPreview);
   }
   els.actionPanel.append(button);
+}
+
+function actionCooldownNode(meta = {}) {
+  if (meta.cooldownValue !== undefined) {
+    const chip = cooldownChip(meta.cooldownValue, meta.cooldownLabel || "冷却", `action-meta action-cooldown ${meta.cooldownState || ""}`);
+    return chip;
+  }
+  if (meta.cooldown || meta.cooldown === 0) return actionSpan("action-meta action-cooldown", meta.cooldown);
+  return null;
+}
+
+function actionNameNode(label, iconName) {
+  const span = actionSpan("action-name", label);
+  if (iconName) span.append(uiIconNode(iconName, "action-name-icon"));
+  return span;
+}
+
+function actionTooltipContent(label, tooltip, meta = {}) {
+  if (tooltip && typeof tooltip === "object") return tooltip;
+  const cooldownText = meta.cooldownValue !== undefined ? `${meta.cooldownLabel || "冷却"} ${meta.cooldownValue}` : meta.cooldown || "-";
+  const rows = [
+    ["类型", meta.top || "行动"],
+    ["冷却", cooldownText],
+    ["数值", meta.damage || "-"],
+  ];
+  return {
+    eyebrow: "行动",
+    title: label,
+    subtitle: meta.top || "战术指令",
+    sections: [
+      { title: "参数", rows },
+      { title: "说明", text: tooltip || "无额外说明。" },
+    ],
+  };
 }
 
 function actionSpan(className, text) {
@@ -685,6 +800,9 @@ function buildSkillPreview(actor, skillKey) {
   }
   if (currentSkill.kind === "beam") {
     return buildFreeRayPreview(actor, currentSkill);
+  }
+  if (isFixedDistanceDirectionSkill(currentSkill)) {
+    return buildFixedLinePreview(actor, currentSkill);
   }
   if (isLineTargetSkill(currentSkill)) {
     return buildLineTargetPreview(actor, currentSkill);
@@ -761,8 +879,28 @@ function buildFreeRayPreview(actor, currentSkill, targetPoint = null) {
   };
 }
 
+function isFixedDistanceDirectionSkill(currentSkill) {
+  return currentSkill?.kind === "direction" || currentSkill?.kind === "shieldLine";
+}
+
+function buildFixedLinePreview(actor, currentSkill, targetPoint = null) {
+  const maxDistance = currentSkill.maxDistance || currentSkill.range || HEX_RADIUS * 2;
+  const cells = getCellsInRange(actor.position, maxDistance).filter((cell) => hexDistance(actor.position, cell) > 0);
+  const line = fixedDistanceLine(actor, currentSkill, targetPoint || defaultRayTargetPoint(actor, currentSkill));
+  return {
+    type: "fixedLine",
+    rangeKeys: new Set(cells.map(coordKey)),
+    selectableKeys: new Set(cells.map(coordKey)),
+    pathKeys: new Set(line.pathCells.map(coordKey)),
+    targetPoint: line.targetPoint,
+    targetCell: line.targetCell,
+    highlightClass: "skill",
+    hoverText: "选择方向",
+  };
+}
+
 function isLineTargetSkill(currentSkill) {
-  return currentSkill?.kind === "direction" || currentSkill?.kind === "shieldLine" || currentSkill?.kind === "zoeQ" || currentSkill?.kind === "zoeE" || currentSkill?.kind === "yasuoQ" || currentSkill?.kind === "yasuoQ3" || currentSkill?.kind === "yasuoE";
+  return currentSkill?.kind === "zoeQ" || currentSkill?.kind === "zoeE" || currentSkill?.kind === "yasuoQ" || currentSkill?.kind === "yasuoQ3" || currentSkill?.kind === "yasuoE";
 }
 
 function buildLineTargetPreview(actor, currentSkill, targetCell = null) {
@@ -821,7 +959,7 @@ function getEffectiveSkill(actor, key) {
       name: currentSkill.empoweredName || "旋风斩",
       kind: "yasuoQ3",
       tags: "方向 / 控制 / 强化",
-      description: "消耗所有旋风烈斩，选择任意方向，攻击直线路径上6格范围内的所有敌人，并使命中的敌人浮空2次战场时间。",
+      description: "消耗所有【旋风烈斩】，选择任意方向，斩击直线路径上6格范围内的所有敌人，造成14点伤害，并使其获得【浮空】，持续2个回合。",
       range: currentSkill.empoweredRange || 6,
       currentCooldown: currentSkill.currentCooldown,
     };
@@ -832,7 +970,7 @@ function getEffectiveSkill(actor, key) {
       name: currentSkill.empoweredName || "旋风击",
       kind: "yasuoE3",
       tags: "范围 / 控制 / 强化",
-      description: "消耗所有旋风烈斩，对自身2格范围内的敌人造成伤害，并使命中的敌人浮空2次战场时间。",
+      description: "消耗所有【旋风烈斩】，对自身2格范围内的所有敌人造成12点伤害，并使其获得【浮空】，持续2个回合。",
       range: currentSkill.empoweredRange || 2,
       currentCooldown: currentSkill.currentCooldown,
     };
@@ -848,34 +986,165 @@ function targetableEnemiesForSkill(actor, currentSkill) {
 
 function statChip(label, value) {
   const chip = document.createElement("span");
-  chip.innerHTML = `<b>${label}</b>${value}`;
+  const iconName = shortStatIconName(label);
+  if (iconName) chip.append(uiIconNode(iconName, "stat-icon"));
+  chip.append(textEl("b", "", label));
+  chip.append(document.createTextNode(String(value)));
   return chip;
+}
+
+function uiIconNode(name, className = "ui-icon") {
+  const img = document.createElement("img");
+  img.className = `${className} icon-${name}`;
+  img.src = ICON_ASSETS[name] || ICON_ASSETS.action;
+  img.alt = "";
+  return img;
+}
+
+function shortStatIconName(label) {
+  if (label === "命") return "health";
+  if (label === "攻") return "attack";
+  if (label === "速") return "action";
+  if (label === "距") return "attackRange";
+  if (label === "移") return "move";
+  return "";
+}
+
+function propertyIconName(label) {
+  if (label === "生命") return "health";
+  if (label === "攻击" || label === "普攻") return "attack";
+  if (label === "攻击范围") return "attackRange";
+  if (label === "行动速度" || label === "行动条") return "action";
+  if (label === "移动距离") return "move";
+  return "";
+}
+
+function iconAfterLabel(label) {
+  return false;
+}
+
+function rowLabelNode(label, options = {}) {
+  const node = document.createElement("span");
+  node.className = "tooltip-row-label";
+  const iconName = propertyIconName(label);
+  const iconAfter = iconAfterLabel(label);
+  if (iconName && !iconAfter) {
+    node.append(uiIconNode(iconName, "tooltip-row-icon"));
+  } else if (options.reserveLeadingIcon) {
+    node.append(textEl("span", "tooltip-row-icon-placeholder", ""));
+  }
+  node.append(document.createTextNode(String(label)));
+  if (iconName && iconAfter) node.append(uiIconNode(iconName, "tooltip-row-icon"));
+  return node;
+}
+
+function rowValueNode(value) {
+  const node = document.createElement("span");
+  node.className = "tooltip-row-value";
+  node.textContent = value;
+  return node;
+}
+
+function richTextEl(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  const pattern = /(行动速度|战斗回合|回合|行动轮次|轮次|行动)/g;
+  String(text).split(pattern).filter((part) => part !== "").forEach((part) => {
+    if (part === "战斗回合" || part === "回合") {
+      node.append(document.createTextNode(part));
+      node.append(uiIconNode("time", "inline-keyword-icon"));
+    } else if (part === "行动速度") {
+      node.append(document.createTextNode(part));
+      node.append(uiIconNode("action", "inline-keyword-icon"));
+    } else if (part === "行动轮次" || part === "轮次" || part === "行动") {
+      node.append(document.createTextNode(part));
+      node.append(uiIconNode("action", "inline-keyword-icon"));
+    } else {
+      node.append(document.createTextNode(part));
+    }
+  });
+  return node;
+}
+
+function skillEntries(skills) {
+  return SKILL_ORDER.map((key) => [key, skills[key]]).filter(([, currentSkill]) => Boolean(currentSkill));
+}
+
+function skillKeyLabel(key, currentSkill) {
+  if (key === "flash" || currentSkill?.kind === "flash") return "闪";
+  return (key || currentSkill?.key || "").toUpperCase();
+}
+
+function skillBlockData(key, currentSkill, options = {}) {
+  return {
+    key: skillKeyLabel(key, currentSkill),
+    name: currentSkill.name,
+    tags: parseSkillTags(currentSkill.tags),
+    cooldownValue: options.cooldownValue ?? currentSkill.cooldown,
+    cooldownLabel: options.cooldownLabel || "冷却",
+    cooldownState: options.cooldownState || "base",
+    text: currentSkill.description,
+  };
+}
+
+function parseSkillTags(tags) {
+  return String(tags || "技能")
+    .split("/")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
+function heroTooltipContent(heroKey) {
+  const hero = HEROES[heroKey];
+  const profile = HERO_PROFILES[heroKey] || { role: "英雄", summary: "战术单位" };
+  const skills = skillEntries(hero.skills).map(([key, currentSkill]) => skillBlockData(key, currentSkill, { cooldownValue: currentSkill.cooldown, cooldownLabel: "冷却" }));
+  return {
+    eyebrow: "英雄档案",
+    title: hero.name,
+    subtitle: `${hero.attackType === "ranged" ? "远程攻击" : "近战攻击"} · ${profile.role}`,
+    sections: [
+      { title: "定位", text: profile.summary },
+      { title: "基础属性", rows: [["生命", hero.hp], ["攻击", hero.attackDamage], ["攻击范围", hero.attackRange], ["行动速度", hero.actionSpeed], ["移动距离", hero.moveRange]] },
+      { title: `被动：${hero.passive.name}`, text: hero.passive.description },
+      { title: "技能", skills },
+    ],
+  };
 }
 
 function characterDetailTooltip(character) {
   const team = character.team === "player" ? "友军" : "敌方";
   const statuses = character.statuses.filter((status) => status.remaining > 0).map(statusLabel).join("、") || "无";
   const mfPassive = missFortunePassiveInfo(character);
-  const skills = Object.entries(character.skills)
+  const skills = skillEntries(character.skills)
     .map(([key, currentSkill]) => {
       const effectiveSkill = getEffectiveSkill(character, key);
-      const label = key === "flash" ? "闪现" : effectiveSkill.key;
-      const cd = currentSkill.currentCooldown > 0 ? `剩余 ${currentSkill.currentCooldown}次战场时间` : `可用 / CD ${currentSkill.cooldown}次战场时间`;
-      return `${label} ${effectiveSkill.name}：${cd}`;
-    })
-    .join("\n");
-  return [
-    `${character.name}（${team}）`,
-    `生命：${Math.max(0, character.hp)} / ${character.maxHp}`,
-    `攻击：${character.attackType === "ranged" ? "远程" : "近战"}，攻击力 ${character.attackDamage}，攻击范围 ${character.attackRange}`,
-    `速度：基础 ${character.actionSpeed}，当前 ${Math.round(effectiveActionSpeed(character))}，行动条 ${Math.round(character.actionProgress)} / ${ACTION_BAR_LENGTH}`,
-    `移动：${character.moveMode}，移动范围 ${character.moveRange}`,
-    `普攻：${canAttack(character) ? "可用" : "后摇或控制中"}`,
-    `被动：${character.passive.name}`,
-    mfPassive ? `女枪被动层数：${mfPassive.layers}层，行动速度加成 ${Math.round(mfPassive.bonus * 100)}%` : null,
-    `当前状态：${statuses}`,
-    `技能冷却：\n${skills}`,
-  ].filter(Boolean).join("\n");
+      return skillBlockData(key, effectiveSkill, {
+        cooldownValue: currentSkill.currentCooldown > 0 ? currentSkill.currentCooldown : 0,
+        cooldownLabel: currentSkill.currentCooldown > 0 ? "剩余冷却" : "可用",
+        cooldownState: currentSkill.currentCooldown > 0 ? "cooling" : "ready",
+      });
+    });
+  const rows = [
+    ["生命", `${Math.max(0, character.hp)} / ${character.maxHp}`],
+    ["攻击", `${character.attackType === "ranged" ? "远程" : "近战"} · ${character.attackDamage}`],
+    ["攻击范围", character.attackRange],
+    ["行动速度", `${Math.round(effectiveActionSpeed(character))} / 基础 ${character.actionSpeed}`],
+    ["行动条", `${Math.round(character.actionProgress)} / ${ACTION_BAR_LENGTH}`],
+    ["移动距离", character.moveRange],
+    ["普攻", canAttack(character) ? "可用" : "后摇或控制中"],
+  ];
+  return {
+    eyebrow: "角色详情",
+    title: character.name,
+    subtitle: team,
+    sections: [
+      { title: "基础属性", rows },
+      { title: `被动：${character.passive.name}`, text: character.passive.description },
+      mfPassive ? { title: "当前加成", rows: [["大步流星", `${mfPassive.layers}层`], ["行动速度", `+${Math.round(mfPassive.bonus * 100)}%`]] } : null,
+      { title: "当前状态", text: statuses },
+      { title: "技能", skills },
+    ].filter(Boolean),
+  };
 }
 
 function attachFloatingTooltip(node, text) {
@@ -884,18 +1153,18 @@ function attachFloatingTooltip(node, text) {
   node.addEventListener("mouseleave", hideFloatingTooltip);
 }
 
-function showFloatingTooltip(text, event) {
+function showFloatingTooltip(content, event) {
   if (!els.floatingTooltip) return;
-  els.floatingTooltip.textContent = text;
+  els.floatingTooltip.replaceChildren(buildTooltipNode(normalizeTooltipContent(content)));
   els.floatingTooltip.classList.add("show");
   positionFloatingTooltip(event);
 }
 
 function positionFloatingTooltip(event) {
-  if (!els.floatingTooltip) return;
+  if (!els.floatingTooltip || !event) return;
   const margin = 12;
   const rect = els.floatingTooltip.getBoundingClientRect();
-  const width = rect.width || 430;
+  const width = rect.width || 460;
   const height = rect.height || 80;
   const x = Math.min(window.innerWidth - width - margin, event.clientX + margin);
   const y = Math.min(window.innerHeight - height - margin, event.clientY + margin);
@@ -906,6 +1175,125 @@ function hideFloatingTooltip() {
   if (!els.floatingTooltip) return;
   els.floatingTooltip.classList.remove("show");
   els.floatingTooltip.style.transform = "translate(-9999px, -9999px)";
+}
+
+function handleTooltipWheel(event) {
+  if (!els.floatingTooltip?.classList.contains("show")) return;
+  const body = els.floatingTooltip.querySelector(".tooltip-body");
+  if (!body || body.scrollHeight <= body.clientHeight) return;
+  body.scrollTop += event.deltaY;
+  event.preventDefault();
+}
+
+function normalizeTooltipContent(content) {
+  if (content && typeof content === "object" && !Array.isArray(content)) return content;
+  const text = String(content || "无额外说明。");
+  const blocks = text.split(/\n\s*\n/).map((block) => block.trim()).filter(Boolean);
+  if (blocks.length > 1) {
+    return {
+      eyebrow: "格子要素",
+      title: "当前格",
+      sections: blocks.map((block) => {
+        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+        return { title: lines[0] || "详情", text: lines.slice(1).join("\n") || lines[0] || "" };
+      }),
+    };
+  }
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    return { eyebrow: "详情", title: lines[0], sections: [{ title: "说明", text: lines.slice(1).join("\n") }] };
+  }
+  return { eyebrow: "详情", title: "说明", sections: [{ title: "内容", text }] };
+}
+
+function buildTooltipNode(content) {
+  const root = document.createElement("div");
+  root.className = "tooltip-card";
+  const header = document.createElement("div");
+  header.className = "tooltip-header";
+  if (content.eyebrow) header.append(textEl("span", "tooltip-eyebrow", content.eyebrow));
+  header.append(textEl("strong", "tooltip-title", content.title || "详情"));
+  if (content.subtitle) header.append(textEl("span", "tooltip-subtitle", content.subtitle));
+  root.append(header);
+  const body = document.createElement("div");
+  body.className = "tooltip-body";
+  (content.sections || []).forEach((section) => body.append(buildTooltipSection(section)));
+  root.append(body);
+  return root;
+}
+
+function buildTooltipSection(section) {
+  const node = document.createElement("section");
+  node.className = "tooltip-section";
+  if (section.title) node.append(textEl("h3", "", section.title));
+  if (section.text) node.append(richTextEl("p", "", section.text));
+  if (section.rows?.length) {
+    const rows = document.createElement("div");
+    rows.className = "tooltip-rows";
+    const reserveLeadingIcon = section.rows.some(([label]) => propertyIconName(label) && !iconAfterLabel(label));
+    section.rows.forEach(([label, value]) => {
+      rows.append(rowLabelNode(label, { reserveLeadingIcon }));
+      rows.append(rowValueNode(value));
+    });
+    node.append(rows);
+  }
+  if (section.items?.length) {
+    const list = document.createElement("ul");
+    list.className = "tooltip-list";
+    section.items.forEach((item) => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.append(li);
+    });
+    node.append(list);
+  }
+  if (section.skills?.length) {
+    const skills = document.createElement("div");
+    skills.className = "tooltip-skills";
+    section.skills.forEach((skillData) => skills.append(buildSkillBlock(skillData)));
+    node.append(skills);
+  }
+  if (section.skill) node.append(buildSkillBlock(section.skill));
+  return node;
+}
+
+function buildSkillBlock(skillData) {
+  const block = document.createElement("article");
+  block.className = "tooltip-skill";
+  const header = document.createElement("div");
+  header.className = "tooltip-skill-header";
+  const title = document.createElement("div");
+  title.className = "tooltip-skill-title";
+  title.append(textEl("span", "skill-key", skillData.key));
+  title.append(textEl("strong", "skill-name", skillData.name));
+  const tags = document.createElement("div");
+  tags.className = "skill-tags";
+  (skillData.tags || []).forEach((tag) => tags.append(textEl("span", "skill-tag", tag)));
+  title.append(tags);
+  header.append(title);
+  header.append(cooldownChip(skillData.cooldownValue, skillData.cooldownLabel, `skill-cooldown ${skillData.cooldownState || ""}`));
+  block.append(header);
+  block.append(richTextEl("p", "tooltip-skill-text", skillData.text));
+  return block;
+}
+
+function cooldownChip(value, label = "冷却", className = "") {
+  const chip = document.createElement("span");
+  chip.className = `cooldown-chip ${className}`.trim();
+  chip.setAttribute("aria-label", `${label} ${value}`);
+  const icon = document.createElement("img");
+  icon.src = HOURGLASS_ASSET;
+  icon.alt = "";
+  chip.append(icon);
+  chip.append(textEl("span", "cooldown-value", String(value)));
+  return chip;
+}
+
+function textEl(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  node.textContent = text;
+  return node;
 }
 
 function scheduleZoneTooltip(cell, event) {
@@ -928,21 +1316,54 @@ function clearZoneTooltipTimer() {
 }
 
 function skillButtonMeta(currentSkill) {
-  const cooldown = currentSkill.currentCooldown > 0 ? `剩余 ${currentSkill.currentCooldown}` : `CD ${currentSkill.cooldown}`;
-  let damage = "-";
-  if (currentSkill.damage) damage = `伤害 ${currentSkill.damage}`;
-  if (currentSkill.shield) damage = `护盾 ${currentSkill.shield}`;
-  if (currentSkill.kind === "flash" || currentSkill.kind === "zoeR") damage = `位移 ${currentSkill.range}`;
-  return { top: "技能", cooldown, damage, tick: "-" };
+  const cooldownValue = currentSkill.currentCooldown > 0 ? currentSkill.currentCooldown : currentSkill.cooldown;
+  return {
+    icon: "skill",
+    cooldownValue,
+    cooldownLabel: currentSkill.currentCooldown > 0 ? "剩余冷却" : "冷却",
+    cooldownState: currentSkill.currentCooldown > 0 ? "cooling" : "base",
+    bottomRight: currentSkill.currentCooldown > 0 ? `剩余${currentSkill.currentCooldown}回合` : "",
+  };
 }
 
 function skillTooltip(currentSkill) {
-  const cd = currentSkill.currentCooldown > 0 ? `当前冷却：剩余${currentSkill.currentCooldown}次战场时间` : `释放后冷却：${currentSkill.cooldown}次战场时间`;
-  return `标签：${currentSkill.tags || "无"}。${currentSkill.description} ${cd}。`;
+  return skillTooltipContent(currentSkill);
+}
+
+function skillTooltipContent(currentSkill) {
+  const cooldownValue = currentSkill.currentCooldown > 0 ? currentSkill.currentCooldown : currentSkill.cooldown;
+  const cooldownLabel = currentSkill.currentCooldown > 0 ? "剩余冷却" : "冷却";
+  const rows = [
+    ["范围", currentSkill.range || "自身"],
+  ];
+  if (currentSkill.damage) rows.push(["伤害", currentSkill.damage]);
+  if (currentSkill.shield) rows.push(["护盾", currentSkill.shield]);
+  if (currentSkill.duration) rows.push(["持续", `${currentSkill.duration}个回合`]);
+  return {
+    eyebrow: "技能",
+    title: `${currentSkill.key} ${currentSkill.name}`,
+    subtitle: currentSkill.tags || "战术技能",
+    sections: [
+      { skill: skillBlockData(null, currentSkill, { cooldownValue, cooldownLabel, cooldownState: currentSkill.currentCooldown > 0 ? "cooling" : "base" }) },
+      { title: "参数", rows },
+    ],
+  };
 }
 
 function basicAttackTooltip(actor) {
-  return `标签：普通攻击。伤害：${expectedBasicDamage(actor)}。范围：${actor.attackRange}。同一个战场时间内只能普通攻击一次，可攻击次数会在下一个战场时间恢复。`;
+  return basicAttackTooltipContent(actor);
+}
+
+function basicAttackTooltipContent(actor) {
+  return {
+    eyebrow: "普通攻击",
+    title: actor.attackType === "ranged" ? "远程普攻" : "近战普攻",
+    subtitle: "每个战斗回合同一角色只能普通攻击一次",
+    sections: [
+      { title: "参数", rows: [["伤害", expectedBasicDamage(actor)], ["范围", actor.attackRange], ["状态", canAttack(actor) ? "可用" : "后摇或控制中"]] },
+      { title: "规则", text: "可攻击次数会在下一个战斗回合恢复。" },
+    ],
+  };
 }
 
 function expectedBasicDamage(actor) {
@@ -968,19 +1389,48 @@ function statusLabel(status) {
 }
 
 function statusTooltip(status) {
-  const duration = Number.isFinite(status.remaining) ? `剩余 ${status.remaining} 次战场时间。` : "无持续时间，会在条件变化时移除。";
+  const duration = Number.isFinite(status.remaining) ? `剩余 ${status.remaining}个回合。` : "无持续时间，会在条件变化时移除。";
   if (status.type === "root") return `禁锢：不能移动或使用位移。${duration}`;
   if (status.type === "stun") return `晕眩：跳过行动，不能攻击、移动或施放技能。${duration}`;
   if (status.type === "shield") return `护盾：吸收伤害。当前护盾值 ${status.amount}，${duration}`;
   if (status.type === "channel") return `引导中：${status.skillName || "技能"}。剩余 ${status.remaining} 次，可继续引导或结束。`;
   if (status.type === "illumination") return `光芒四射：拉克丝普通攻击或终极闪光会引爆，造成额外伤害。${duration}`;
-  if (status.type === "drowsy") return `困倦：下次战场时间结算后转为昏睡。${duration}`;
+  if (status.type === "drowsy") return `困倦：下次战斗回合结算后转为昏睡。${duration}`;
   if (status.type === "sleep") return `昏睡：受到伤害时破除，本次伤害翻倍。${duration}`;
   if (status.type === "zoeSpark") return "烟火四射：佐伊下一次普通攻击造成额外8点伤害。";
   if (status.type === "mfTarget") return "厄运的眷顾：这是女枪的最新目标。女枪攻击不具有该状态的目标时会造成额外7点伤害，并将此状态转移给新目标。";
   if (status.type === "yasuoWind") return `旋风烈斩：当前 ${status.stacks || 1} 层。达到2层后，亚索的Q和E变为强化技能。`;
   if (status.type === "airborne") return `浮空：行动条暂停，不能行动。${duration}`;
   return `${statusLabel(status)}。${duration}`;
+}
+
+function passiveTooltipContent(character) {
+  return {
+    eyebrow: "被动",
+    title: character.passive.name,
+    subtitle: character.name,
+    sections: [
+      { title: "效果", text: character.passive.description },
+    ],
+  };
+}
+
+function statusTooltipContent(status, holder = null) {
+  const duration = Number.isFinite(status.remaining) ? `剩余 ${status.remaining}个回合` : "无固定持续时间";
+  const rows = [["状态", statusLabel(status)], ["持续", duration]];
+  if (status.amount) rows.push(["数值", status.amount]);
+  if (status.stacks) rows.push(["层数", status.stacks]);
+  const source = status.sourceId ? getCharacter(status.sourceId) : null;
+  if (source && source.id !== holder?.id) rows.push(["来源", source.name]);
+  return {
+    eyebrow: "状态",
+    title: statusLabel(status).replace(/\s.*/, ""),
+    subtitle: duration,
+    sections: [
+      { title: "概览", rows },
+      { title: "效果", text: statusTooltip(status) },
+    ],
+  };
 }
 
 function renderHighlights() {
@@ -1077,7 +1527,7 @@ function zoneTooltip(zone) {
     `${zone.name}（${owner?.name || "未知来源"}）`,
     `阵营：${zone.team === "player" ? "友军" : "敌方"}`,
   ];
-  if (Number.isFinite(zone.remaining)) parts.push(`剩余：${zone.remaining} 次战场时间`);
+  if (Number.isFinite(zone.remaining)) parts.push(`剩余：${zone.remaining}个回合`);
   if (zone.damage > 0) parts.push(`伤害：每次结算 ${zone.damage}`);
   if (zone.detonateDamage > 0) parts.push(`再次施放可引爆：${zone.detonateDamage} 伤害`);
   if (zone.slow > 0) parts.push(`减速：${Math.round(zone.slow * 100)}%`);
@@ -1100,7 +1550,7 @@ function zoeStarTooltip(projectile) {
     `飞星乱入停留点（${owner?.name || "佐伊"}）`,
     `阵营：${projectile.team === "player" ? "友军" : "敌方"}`,
   ];
-  if (Number.isFinite(projectile.remaining)) parts.push(`剩余：${projectile.remaining} 次战场时间`);
+  if (Number.isFinite(projectile.remaining)) parts.push(`剩余：${projectile.remaining}个回合`);
   parts.push("效果：佐伊可以在持续期间再次施放Q，将飞星重新导引到新的目标点。");
   return parts.join("\n");
 }
@@ -1205,8 +1655,8 @@ function renderUnits() {
         event.stopPropagation();
         handleUnitClick(character.id, event);
       });
-      group.addEventListener("mouseenter", (event) => handleCellPointerEnter(character.position, event));
-      group.addEventListener("mousemove", (event) => handleCellPointerMove(character.position, event));
+      group.addEventListener("mouseenter", (event) => handleUnitPointerEnter(character, event));
+      group.addEventListener("mousemove", (event) => handleUnitPointerMove(character, event));
       group.addEventListener("mouseleave", handleCellPointerLeave);
       unitLayer.append(group);
       unitEls.set(character.id, group);
@@ -1254,6 +1704,46 @@ function handleUnitClick(characterId, event = null) {
   handleCellClick(character.position, event);
 }
 
+function handleUnitPointerEnter(character, event) {
+  event?.stopPropagation();
+  handleUnitHover(character, event);
+  scheduleZoneTooltip(character.position, event);
+}
+
+function handleUnitPointerMove(character, event) {
+  event?.stopPropagation();
+  handleUnitHover(character, event);
+  if (zoneCellTooltip(character.position)) {
+    clearZoneTooltipTimer();
+    scheduleZoneTooltip(character.position, event);
+  } else {
+    clearZoneTooltipTimer();
+  }
+  if (els.floatingTooltip?.classList.contains("show")) positionFloatingTooltip(event);
+}
+
+function handleUnitHover(character, event = null) {
+  if (!character?.isAlive) return false;
+  if (updateTargetUnitPreview(character)) return true;
+  handleCellHover(character.position, event);
+  return false;
+}
+
+function updateTargetUnitPreview(character) {
+  const selection = state.selection;
+  if (!selection || selection.type !== "target" || state.isAnimating || state.gameOver) return false;
+  const actor = getCharacter(selection.actorId);
+  const currentSkill = getEffectiveSkill(actor, selection.skillKey);
+  if (!actor || !currentSkill || currentSkill.kind !== "mfQ") return false;
+  const key = coordKey(character.position);
+  if (!selection.selectableKeys?.has(key) || character.team === actor.team) return false;
+  selection.resolvedCell = cloneCoord(character.position);
+  selection.effectKeys = new Set(missFortuneQSecondHitCells(actor, character).map(coordKey));
+  els.targetHint.textContent = `${currentSkill.name}：${character.name}`;
+  renderHighlights();
+  return true;
+}
+
 function isUnitTargetable(character) {
   if (!state.selection || state.gameOver || state.isAnimating) return false;
   const key = coordKey(character.position);
@@ -1294,6 +1784,7 @@ function handleCellHover(cell, event = null) {
 }
 
 function handleCellClick(cell, event = null) {
+  if (consumeSuppressedBoardClick()) return;
   if (state.gameOver || state.isAnimating || !state.selection) return;
   const actor = getCharacter(state.selection.actorId);
   if (!actor || actor.team !== "player" || actor.id !== state.currentActorId) return;
@@ -1312,6 +1803,10 @@ function handleCellClick(cell, event = null) {
   if (selection.type === "lineTarget") {
     const targetCell = resolveNearestSelectionCell(selection, cell);
     if (targetCell) void castLineTargetSkill(actor, selection.skillKey, targetCell);
+  }
+  if (selection.type === "fixedLine") {
+    const point = event ? boardPointFromEvent(event) : hexToPixel(cell);
+    if (point) void castFixedLineSkill(actor, selection.skillKey, point);
   }
   if (selection.type === "freeRay") {
     const point = event ? boardPointFromEvent(event) : hexToPixel(cell);
@@ -1333,13 +1828,58 @@ function handleCellClick(cell, event = null) {
   if (selection.type === "flash" && selection.selectableKeys.has(key)) void flashAction(actor, cell, selection.skillKey || "flash");
 }
 
+function handleBoardDragStart(event) {
+  if (event.button !== 0 || state.selection || state.isAnimating || state.gameOver) return;
+  const box = currentViewBox();
+  if (!box) return;
+  state.boardDrag = {
+    startClient: { x: event.clientX, y: event.clientY },
+    startCenter: currentViewCenter(),
+    viewBox: box,
+    moved: false,
+  };
+  els.board.classList.add("dragging");
+}
+
+function handleBoardDragMove(event) {
+  const drag = state.boardDrag;
+  if (!drag) return;
+  const rect = els.board.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dx = event.clientX - drag.startClient.x;
+  const dy = event.clientY - drag.startClient.y;
+  if (Math.hypot(dx, dy) > 3) drag.moved = true;
+  const scaleX = drag.viewBox.width / rect.width;
+  const scaleY = drag.viewBox.height / rect.height;
+  state.viewCenter = {
+    x: drag.startCenter.x - dx * scaleX,
+    y: drag.startCenter.y - dy * scaleY,
+  };
+  applyBoardViewBox();
+  event.preventDefault();
+}
+
+function handleBoardDragEnd() {
+  if (state.boardDrag?.moved) state.suppressBoardClick = true;
+  state.boardDrag = null;
+  els.board.classList.remove("dragging");
+}
+
+function consumeSuppressedBoardClick() {
+  if (!state.suppressBoardClick) return false;
+  state.suppressBoardClick = false;
+  return true;
+}
+
 function handleBoardPointerMove(event) {
+  if (eventFromInteractiveBoardItem(event)) return;
   if (!state.selection || state.isAnimating || state.gameOver) return;
   const point = boardPointFromEvent(event);
   if (point) updateSelectionPreview(null, point);
 }
 
 function handleBoardPointerClick(event) {
+  if (consumeSuppressedBoardClick()) return;
   if (eventFromInteractiveBoardItem(event)) return;
   if (state.gameOver || state.isAnimating || !state.selection) return;
   const actor = getCharacter(state.selection.actorId);
@@ -1347,6 +1887,10 @@ function handleBoardPointerClick(event) {
   const point = boardPointFromEvent(event);
   if (state.selection.type === "freeRay") {
     if (point) void castFreeRaySkill(actor, state.selection.skillKey, point);
+    return;
+  }
+  if (state.selection.type === "fixedLine") {
+    if (point) void castFixedLineSkill(actor, state.selection.skillKey, point);
     return;
   }
   const targetCell = point ? resolveNearestSelectionCell(state.selection, null, point) : null;
@@ -1362,7 +1906,7 @@ function handleBoardPointerClick(event) {
 
 function updateSelectionPreview(cell = null, point = null) {
   const selection = state.selection;
-  if (!selection || !["target", "lineTarget", "zone", "direction", "freeCone", "freeRay"].includes(selection.type)) return false;
+  if (!selection || !["target", "lineTarget", "fixedLine", "zone", "direction", "freeCone", "freeRay"].includes(selection.type)) return false;
   const actor = getCharacter(selection.actorId);
   const currentSkill = getEffectiveSkill(actor, selection.skillKey);
   if (!actor || !currentSkill) return false;
@@ -1387,6 +1931,16 @@ function updateSelectionPreview(cell = null, point = null) {
     const pathCells = rayCellsFromPoint(actor.position, targetPoint, currentSkill.maxDistance || HEX_RADIUS * 2);
     selection.targetPoint = targetPoint;
     selection.pathKeys = new Set(pathCells.map(coordKey));
+    selection.effectKeys = new Set();
+    els.targetHint.textContent = selection.hoverText || "选择方向";
+    renderHighlights();
+    return true;
+  }
+  if (selection.type === "fixedLine") {
+    const line = fixedDistanceLine(actor, currentSkill, point || (cell ? hexToPixel(cell) : null));
+    selection.targetPoint = line.targetPoint;
+    selection.targetCell = line.targetCell;
+    selection.pathKeys = new Set(line.pathCells.map(coordKey));
     selection.effectKeys = new Set();
     els.targetHint.textContent = selection.hoverText || "选择方向";
     renderHighlights();
@@ -1497,6 +2051,10 @@ function prepareSkill(actor, key) {
     prepareFreeRaySkill(actor, key);
     return;
   }
+  if (isFixedDistanceDirectionSkill(currentSkill)) {
+    prepareFixedLineSkill(actor, key);
+    return;
+  }
   if (isLineTargetSkill(currentSkill)) {
     prepareLineTargetSkill(actor, key);
     return;
@@ -1539,6 +2097,15 @@ function prepareFreeRaySkill(actor, skillKey) {
   const preview = buildFreeRayPreview(actor, currentSkill);
   state.hoverPreview = null;
   state.selection = { ...preview, type: "freeRay", actorId: actor.id, skillKey, menu: "skills" };
+  els.targetHint.textContent = `选择${currentSkill.name}方向`;
+  renderAll();
+}
+
+function prepareFixedLineSkill(actor, skillKey) {
+  const currentSkill = getEffectiveSkill(actor, skillKey);
+  const preview = buildFixedLinePreview(actor, currentSkill);
+  state.hoverPreview = null;
+  state.selection = { ...preview, type: "fixedLine", actorId: actor.id, skillKey, menu: "skills" };
   els.targetHint.textContent = `选择${currentSkill.name}方向`;
   renderAll();
 }
@@ -1597,7 +2164,7 @@ async function moveAction(actor, targetCell) {
 }
 
 async function waitAction(actor) {
-  await performAction(actor, { name: "原地不动", tickCost: false, unitClass: "casting", effect: async () => { addFloating(actor.position, "等待", "control"); await sleep(220); } });
+  await performAction(actor, { name: "跳过", tickCost: false, unitClass: "casting", effect: async () => { addFloating(actor.position, "等待", "control"); await sleep(220); } });
 }
 
 async function continueChannelAction(actor) {
@@ -1631,7 +2198,7 @@ async function detonateLuxFieldAction(actor, skillKey) {
     effect: async () => {
       markSpellCast(actor);
       const affected = sortTargetsByDistanceClockwise(actor, allAlive(oppositeTeam(actor.team)).filter((target) => getZoneCells(zone).some((cell) => coordsEqual(cell, target.position))));
-      if (!affected.length) addLog(`战场时间 ${state.battleTick}：光辉领域引爆，范围内暂无敌人。`);
+      if (!affected.length) addLog(`战斗回合 ${state.battleTick}：光辉领域引爆，范围内暂无敌人。`);
       affected.forEach((target) => {
         dealDamage(actor, target, currentSkill.damage, "光辉领域", { skillDamage: true });
         addImpact(target.position);
@@ -1653,7 +2220,7 @@ function endChannelAction(actor) {
   state.selection = null;
   state.hoverPreview = null;
   addFloating(actor.position, "结束引导", "control");
-  addLog(`战场时间 ${state.battleTick}：${actor.name}结束引导${channel.skillName || "技能"}。`);
+  addLog(`战斗回合 ${state.battleTick}：${actor.name}结束引导${channel.skillName || "技能"}。`);
   els.targetHint.textContent = `请选择 ${actor.name} 的行动`;
   renderAll();
 }
@@ -1700,9 +2267,9 @@ async function basicAttack(actor, target) {
         });
         state.projectiles.push(projectile);
         const immediateHit = projectileHitTarget(projectile);
-        if (immediateHit) resolveProjectileHit(projectile, immediateHit);
+        if (immediateHit) await resolveProjectileHit(projectile, immediateHit);
         await advanceProjectileToEnd(projectile);
-        addLog(`战场时间 ${state.battleTick}：${actor.name}发射远程普攻，目标 ${target.name}。`);
+        addLog(`战斗回合 ${state.battleTick}：${actor.name}发射远程普攻，目标 ${target.name}。`);
       }
       await sleep(260);
     },
@@ -1719,7 +2286,7 @@ async function castSelfSkill(actor, skillKey) {
       setCooldown(actor, skillKey);
       markSpellCast(actor);
       if (currentSkill.kind === "shield") {
-        applyShield(actor, currentSkill.shield, currentSkill.duration);
+        applyShield(actor, currentSkill.shield, currentSkill.duration, { sourceId: actor.id });
         addFloating(actor.position, `盾+${currentSkill.shield}`, "shield");
       } else if (currentSkill.kind === "mfW") {
         actor.temp.mfWBoost = 0.5;
@@ -1727,7 +2294,7 @@ async function castSelfSkill(actor, skillKey) {
       } else if (currentSkill.kind === "spin") {
         sortTargetsByDistanceClockwise(actor, allAlive(oppositeTeam(actor.team)).filter((target) => hexDistance(actor.position, target.position) <= currentSkill.range)).forEach((target) => {
           dealDamage(actor, target, currentSkill.damage, currentSkill.name, { skillDamage: true });
-          applyStatus(target, "stun", currentSkill.stunDuration || 1);
+          applyStatus(target, "stun", currentSkill.stunDuration || 1, { sourceId: actor.id });
           addFloating(target.position, "晕眩", "control");
         });
       } else if (currentSkill.kind === "yasuoE3") {
@@ -1855,6 +2422,34 @@ async function castFreeConeSkill(actor, skillKey, targetPoint) {
   });
 }
 
+async function castFixedLineSkill(actor, skillKey, targetPoint) {
+  const currentSkill = getEffectiveSkill(actor, skillKey);
+  const line = fixedDistanceLine(actor, currentSkill, targetPoint);
+  if (!line.pathCells.length && !line.targetCell) return;
+  await performAction(actor, {
+    name: currentSkill.name,
+    tickCost: false,
+    unitClass: "casting",
+    effect: async () => {
+      setCooldown(actor, skillKey);
+      markSpellCast(actor);
+      if (currentSkill.kind === "shieldLine") {
+        await castShieldLine(actor, currentSkill, line);
+      } else {
+        const projectile = createProjectile({ name: currentSkill.name, type: "linear", actor, targetCell: line.targetCell, speed: currentSkill.projectileSpeed, maxDistance: currentSkill.maxDistance, damage: currentSkill.damage, rootDuration: currentSkill.rootDuration, maxHits: currentSkill.maxHits || 1, canBeBlocked: true, effect: actor.heroKey === "lux" ? "luxSkill" : null });
+        projectile.path = line.pathCells.map(cloneCoord);
+        projectile.pathIndex = -1;
+        projectile.pathStart = cloneCoord(actor.position);
+        projectile.pathTarget = line.targetCell ? cloneCoord(line.targetCell) : null;
+        projectile.pathTargetPoint = { ...line.targetPoint };
+        state.projectiles.push(projectile);
+        await advanceProjectileToEnd(projectile);
+      }
+      await sleep(240);
+    },
+  });
+}
+
 async function castDirectionSkill(actor, skillKey, targetOrDirection) {
   const currentSkill = getEffectiveSkill(actor, skillKey);
   await performAction(actor, {
@@ -1867,7 +2462,7 @@ async function castDirectionSkill(actor, skillKey, targetOrDirection) {
       if (currentSkill.kind === "windWall") {
         const direction = targetOrDirection;
         state.windWalls.push(...createWindWalls(actor, direction, currentSkill.duration, currentSkill.width || 1));
-        addLog(`战场时间 ${state.battleTick}：${actor.name}架起风墙。`);
+        addLog(`战斗回合 ${state.battleTick}：${actor.name}架起风墙。`);
       } else if (currentSkill.kind === "yasuoQ" || currentSkill.kind === "yasuoQ3") {
         castYasuoSteelTempest(actor, currentSkill, targetOrDirection);
       } else if (currentSkill.kind === "yasuoE") {
@@ -1905,14 +2500,14 @@ function castYasuoSteelTempest(actor, currentSkill, direction) {
   const empowered = currentSkill.kind === "yasuoQ3";
   if (empowered) consumeYasuoWind(actor);
   if (!targets.length) {
-    addLog(`战场时间 ${state.battleTick}：${currentSkill.name}未命中目标。`);
+    addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}未命中目标。`);
     return;
   }
   targets.forEach((target) => {
     dealDamage(actor, target, currentSkill.damage, currentSkill.name, { skillDamage: true });
     addImpact(target.position);
     if (empowered && target.isAlive) {
-      applyStatus(target, "airborne", currentSkill.airborneDuration || 2);
+      applyStatus(target, "airborne", currentSkill.airborneDuration || 2, { sourceId: actor.id });
       addFloating(target.position, "浮空", "control");
     }
   });
@@ -1922,7 +2517,7 @@ function castYasuoSteelTempest(actor, currentSkill, direction) {
 function castYasuoSweepingBlade(actor, currentSkill, direction) {
   const destination = yasuoDashLandingCell(actor, direction, currentSkill);
   if (!destination) {
-    addLog(`战场时间 ${state.battleTick}：${currentSkill.name}没有合法落点。`);
+    addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}没有合法落点。`);
     return;
   }
   const cells = yasuoLineCells(actor, currentSkill, destination);
@@ -1941,12 +2536,12 @@ function castYasuoWhirlwindStrike(actor, currentSkill) {
   consumeYasuoWind(actor);
   const targets = sortTargetsByDistanceClockwise(actor, allAlive(oppositeTeam(actor.team)).filter((target) => hexDistance(actor.position, target.position) <= currentSkill.range));
   if (!targets.length) {
-    addLog(`战场时间 ${state.battleTick}：${currentSkill.name}未命中目标。`);
+    addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}未命中目标。`);
     return;
   }
   targets.forEach((target) => {
     dealDamage(actor, target, currentSkill.damage, currentSkill.name, { skillDamage: true });
-    applyStatus(target, "airborne", currentSkill.airborneDuration || 2);
+    applyStatus(target, "airborne", currentSkill.airborneDuration || 2, { sourceId: actor.id });
     addFloating(target.position, "浮空", "control");
     addImpact(target.position);
   });
@@ -1989,12 +2584,12 @@ async function castPointSkill(actor, skillKey, center) {
     tickCost: false,
     unitClass: "casting",
     effect: async () => {
-      if (currentSkill.kind !== "luxField") setCooldown(actor, skillKey);
+      if (currentSkill.kind !== "luxField" && currentSkill.kind !== "zoeQ") setCooldown(actor, skillKey);
       markSpellCast(actor);
       if (currentSkill.kind === "luxField") {
         const zone = createZone(actor, currentSkill, center, { damage: 0, slow: currentSkill.slow || 0.3, effect: "luxField", cooldownSkillKey: skillKey, detonateDamage: currentSkill.damage });
         state.zones.push(zone);
-        addLog(`战场时间 ${state.battleTick}：${actor.name}布下光辉领域。`);
+        addLog(`战斗回合 ${state.battleTick}：${actor.name}布下光辉领域。`);
       } else if (currentSkill.kind === "zone") {
         const zone = createZone(actor, currentSkill, center, { slow: currentSkill.slow || 0 });
         state.zones.push(zone);
@@ -2049,6 +2644,7 @@ function createProjectile({ name, type, actor, targetId = null, targetCell = nul
     pathIndex: -1,
     pathStart: null,
     pathTarget: null,
+    pathTargetPoint: null,
     pixelPos: null,
     speed,
     maxDistance,
@@ -2087,12 +2683,13 @@ function createZone(actor, currentSkill, center, overrides = {}) {
   };
 }
 
-async function castShieldLine(actor, currentSkill, targetCell) {
+async function castShieldLine(actor, currentSkill, targetCellOrLine) {
+  const line = targetCellOrLine?.pathCells ? targetCellOrLine : null;
+  const targetCell = line?.targetCell || targetCellOrLine;
+  const pathCells = line?.pathCells?.map(cloneCoord) || projectileLinePath(actor.position, targetCell, currentSkill.maxDistance || currentSkill.range || 6);
   const shielded = new Set([actor.id]);
-  applyShield(actor, currentSkill.shield, currentSkill.duration);
+  applyShield(actor, currentSkill.shield, currentSkill.duration, { sourceId: actor.id });
   addFloating(actor.position, `盾+${currentSkill.shield}`, "shield");
-  const pathCells = projectileLinePath(actor.position, targetCell, currentSkill.maxDistance || currentSkill.range || 6);
-
   const projectile = {
     id: nextId("projectile"),
     name: currentSkill.name,
@@ -2100,13 +2697,14 @@ async function castShieldLine(actor, currentSkill, targetCell) {
     team: actor.team,
     ownerId: actor.id,
     targetId: null,
-    targetCell: cloneCoord(targetCell),
+    targetCell: targetCell ? cloneCoord(targetCell) : null,
     pos: cloneCoord(actor.position),
     direction: directionToward(actor.position, targetCell),
     path: pathCells,
     pathIndex: -1,
     pathStart: cloneCoord(actor.position),
-    pathTarget: cloneCoord(targetCell),
+    pathTarget: targetCell ? cloneCoord(targetCell) : null,
+    pathTargetPoint: line?.targetPoint ? { ...line.targetPoint } : null,
     pixelPos: null,
     speed: 1,
     maxDistance: currentSkill.maxDistance || currentSkill.range || 6,
@@ -2127,7 +2725,7 @@ async function castShieldLine(actor, currentSkill, targetCell) {
   for (const next of pathCells) {
     if (isBlockedByWindWall(projectile, projectile.pos, next)) {
       projectile.removed = true;
-      addLog(`战场时间 ${state.battleTick}：${currentSkill.name}被风墙阻挡并消散。`);
+      addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}被风墙阻挡并消散。`);
       break;
     }
     projectile.pos = cloneCoord(next);
@@ -2137,7 +2735,7 @@ async function castShieldLine(actor, currentSkill, targetCell) {
     const ally = state.characters.find((character) => character.isAlive && character.team === actor.team && coordsEqual(character.position, projectile.pos));
     if (ally && !shielded.has(ally.id)) {
       shielded.add(ally.id);
-      applyShield(ally, currentSkill.shield, currentSkill.duration);
+      applyShield(ally, currentSkill.shield, currentSkill.duration, { sourceId: actor.id });
       addFloating(ally.position, `盾+${currentSkill.shield}`, "shield");
     }
     renderProjectiles();
@@ -2160,11 +2758,11 @@ function castBeam(actor, currentSkill, targetPoint) {
       addImpact(target.position);
     }
   }
-  if (!hit) addLog(`战场时间 ${state.battleTick}：${currentSkill.name}未命中目标。`);
+  if (!hit) addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}未命中目标。`);
 }
 
 async function castZoeQ(actor, currentSkill, center) {
-  const existing = state.projectiles.find((projectile) => projectile.ownerId === actor.id && projectile.effect === "zoeQ" && !projectile.removed);
+  const existing = activeZoeQStar(actor);
   if (existing && actor.temp.zoeQRecastUntil >= state.battleTick) {
     existing.targetCell = cloneCoord(center);
     existing.paused = false;
@@ -2173,7 +2771,7 @@ async function castZoeQ(actor, currentSkill, center) {
     existing.path = null;
     existing.pathIndex = -1;
     existing.pixelPos = null;
-    addLog(`战场时间 ${state.battleTick}：${actor.name}重新导引飞星。`);
+    addLog(`战斗回合 ${state.battleTick}：${actor.name}重新导引飞星。`);
     await advanceProjectileToEnd(existing);
     return;
   }
@@ -2190,10 +2788,11 @@ async function performAction(actor, action) {
   state.hoverPreview = null;
   renderAll();
   showToast(`${actor.team === "player" ? "玩家" : "敌方 AI"}使用：${action.name}`);
-  addLog(`战场时间 ${state.battleTick}：${actor.name}使用${action.name}。`);
+  beginActionLog(actor, action);
   setTempUnitClass(actor.id, action.unitClass);
   await sleep(150);
   await action.effect();
+  flushActionLog(actor, action);
   renderAll();
   await sleep(300);
   setTempUnitClass(actor.id, "");
@@ -2239,7 +2838,7 @@ async function advanceBattlefieldTime(reason) {
   await sleep(180);
   state.battleTick += 1;
   state.isBattlefieldSettling = true;
-  addLog(`战场时间 ${state.battleTick}：${reason}。`);
+  addLog(`战斗回合 ${state.battleTick}：${reason}。`);
   spawnPeriodicShard();
   await resolveZones();
   tickDurations();
@@ -2260,7 +2859,7 @@ async function resolveZones() {
     zone.remaining -= 1;
     if (zone.remaining <= 0) {
       zone.removed = true;
-      addLog(`战场时间 ${state.battleTick}：${zone.name}结束。`);
+      addLog(`战斗回合 ${state.battleTick}：${zone.name}结束。`);
     }
     cleanupEntities();
     checkGameOver();
@@ -2274,22 +2873,26 @@ async function applyZoneEffect(zone, immediate) {
   if (zone.effect === "bubbleTrap") {
     const target = allAlive(oppositeTeam(zone.team)).find((character) => getZoneCells(zone).some((cell) => coordsEqual(cell, character.position)));
     if (target) {
-      applyStatus(target, "drowsy", 1);
+      const owner = getCharacter(zone.ownerId);
+      applyStatus(target, "drowsy", 1, { sourceId: zone.ownerId });
       zone.removed = true;
       addFloating(target.position, "困倦", "control");
-      addLog(`战场时间 ${state.battleTick}：催眠气泡陷阱触发，${target.name}进入困倦。`);
+      recordEffectTargetLog(owner, target, zone.name);
     }
     return;
   }
   const owner = getCharacter(zone.ownerId);
   const affected = sortTargetsByDistanceClockwise(owner, allAlive(oppositeTeam(zone.team)).filter((character) => getZoneCells(zone).some((cell) => coordsEqual(cell, character.position))));
-  if (!affected.length && immediate) addLog(`战场时间 ${state.battleTick}：${zone.name}展开，范围内暂无敌人。`);
+  if (!affected.length && immediate) addLog(`战斗回合 ${state.battleTick}：${zone.name}展开，范围内暂无敌人。`);
+  const externalLog = !state.pendingLog && owner && affected.length && zone.damage > 0;
+  if (externalLog) beginActionLog(owner, { name: zone.name, logType: "skill" });
   affected.forEach((target) => {
     if (zone.damage > 0) {
       dealDamage(owner, target, zone.damage, zone.name, { skillDamage: true });
       addImpact(target.position);
     }
   });
+  if (externalLog) flushActionLog(owner, { name: zone.name });
   if (affected.length) await sleep(150);
 }
 
@@ -2313,16 +2916,16 @@ async function advanceProjectile(projectile, steps, source) {
     if (!next || !cellExists(next)) {
       projectile.removed = true;
       if (projectile.path && projectile.pathIndex >= projectile.path.length - 1) {
-        addLog(`战场时间 ${state.battleTick}：${projectile.name}到达终点并消失。`);
+        addLog(`战斗回合 ${state.battleTick}：${projectile.name}到达终点并消失。`);
       } else {
-        addLog(`战场时间 ${state.battleTick}：${projectile.name}飞出棋盘并消失。`);
+        addLog(`战斗回合 ${state.battleTick}：${projectile.name}飞出棋盘并消失。`);
       }
       return;
     }
     if (projectile.canBeBlocked && isBlockedByWindWall(projectile, projectile.pos, next)) {
       projectile.removed = true;
       addScreenImpact(midpoint(hexToPixel(projectile.pos), hexToPixel(next)));
-      addLog(`战场时间 ${state.battleTick}：${projectile.name}被风墙阻挡并消散。`);
+      addLog(`战斗回合 ${state.battleTick}：${projectile.name}被风墙阻挡并消散。`);
       await sleep(120);
       return;
     }
@@ -2336,7 +2939,7 @@ async function advanceProjectile(projectile, steps, source) {
     await sleep(source === "释放推进" ? 90 : 120);
     const hitTarget = projectileHitTarget(projectile);
     if (hitTarget) {
-      resolveProjectileHit(projectile, hitTarget);
+      await resolveProjectileHit(projectile, hitTarget);
       await sleep(120);
       if (projectile.removed) return;
     }
@@ -2344,7 +2947,7 @@ async function advanceProjectile(projectile, steps, source) {
       if (projectile.type === "star") {
         projectile.paused = true;
         projectile.remaining = projectile.pauseDuration || 2;
-        addLog(`战场时间 ${state.battleTick}：飞星到达目标点并停留 ${projectile.remaining} 次战场时间。`);
+        addLog(`战斗回合 ${state.battleTick}：飞星到达目标点并停留 ${projectile.remaining}个回合。`);
         return;
       }
       if (projectile.type === "bubble") {
@@ -2355,13 +2958,13 @@ async function advanceProjectile(projectile, steps, source) {
     }
     if (!projectile.path && projectile.traveled >= projectile.maxDistance) {
       projectile.removed = true;
-      addLog(`战场时间 ${state.battleTick}：${projectile.name}达到最大距离并消失。`);
+      addLog(`战斗回合 ${state.battleTick}：${projectile.name}达到最大距离并消失。`);
       return;
     }
   }
   if (projectile.path && !projectile.paused && !projectile.removed) {
     projectile.removed = true;
-    addLog(`战场时间 ${state.battleTick}：${projectile.name}到达终点并消失。`);
+    addLog(`战斗回合 ${state.battleTick}：${projectile.name}到达终点并消失。`);
   }
 }
 
@@ -2370,6 +2973,11 @@ function nextProjectileCell(projectile) {
     const target = projectile.targetId ? getCharacter(projectile.targetId) : null;
     if (target?.isAlive) projectile.direction = directionToward(projectile.pos, target.position) || projectile.direction;
     return projectile.direction ? addCoords(projectile.pos, projectile.direction) : null;
+  }
+  if (projectile.path) {
+    const next = projectile.path[projectile.pathIndex + 1] || null;
+    if (next) projectile.direction = directionToward(projectile.pos, next) || projectile.direction;
+    return next;
   }
   if (projectile.targetCell) {
     ensureProjectileLinePath(projectile);
@@ -2388,27 +2996,28 @@ function projectileHitTarget(projectile) {
   return allAlive(oppositeTeam(projectile.team)).find((character) => !projectile.hitIds.has(character.id) && coordsEqual(character.position, projectile.pos));
 }
 
-function resolveProjectileHit(projectile, target) {
+async function resolveProjectileHit(projectile, target) {
   projectile.hitIds.add(target.id);
   projectile.removed = projectile.hitIds.size >= (projectile.maxHits || 1);
   if (projectile.effect === "bubble") {
     projectile.removed = true;
-    applyStatus(target, "drowsy", 1);
+    const owner = getCharacter(projectile.ownerId);
+    applyStatus(target, "drowsy", 1, { sourceId: owner?.id });
     addFloating(target.position, "困倦", "control");
-    addLog(`战场时间 ${state.battleTick}：催眠气泡命中 ${target.name}，施加困倦。`);
+    recordEffectTargetLog(owner, target, projectile.name);
     return;
   }
   const owner = getCharacter(projectile.ownerId);
   let damage = projectile.damage;
   if (projectile.effect === "zoeQ") damage = Math.round(damage * (1 + projectile.traveled * (projectile.damagePerCell || 0.1)));
-  dealDamage(owner, target, damage, projectile.name, { skillDamage: projectile.effect === "luxSkill" || projectile.effect === "zoeQ" || projectile.effect === "mfQ" });
+  dealDamage(owner, target, damage, projectile.name, { skillDamage: projectile.effect === "luxSkill" || projectile.effect === "zoeQ" || projectile.effect === "mfQ" || projectile.effect === "mfQBounce" });
   addImpact(target.position);
   if (projectile.effect === "zoeQ") splashZoeQ(owner, target, damage);
   if (projectile.rootDuration && target.isAlive) {
-    applyStatus(target, "root", projectile.rootDuration);
+    applyStatus(target, "root", projectile.rootDuration, { sourceId: owner?.id });
     addFloating(target.position, "禁锢", "control");
   }
-  if (projectile.effect === "mfQ") bounceMissFortuneQ(owner, target, projectile);
+  if (projectile.effect === "mfQ") await bounceMissFortuneQ(owner, target, projectile);
 }
 
 function splashZoeQ(owner, primaryTarget, primaryDamage) {
@@ -2421,14 +3030,27 @@ function splashZoeQ(owner, primaryTarget, primaryDamage) {
   });
 }
 
-function bounceMissFortuneQ(actor, firstTarget, projectile) {
+async function bounceMissFortuneQ(actor, firstTarget, projectile) {
   const cells = missFortuneQSecondHitCells(actor, firstTarget);
   const candidates = allAlive(oppositeTeam(actor.team)).filter((target) => target.id !== firstTarget.id && cells.some((cell) => coordsEqual(cell, target.position)));
   if (!candidates.length) return;
   const nextTarget = candidates.sort((a, b) => hexDistance(firstTarget.position, a.position) - hexDistance(firstTarget.position, b.position))[0];
-  dealDamage(actor, nextTarget, Math.max(1, projectile.damage - 2), "一箭双雕·弹射", { skillDamage: true });
-  addImpact(nextTarget.position);
-  addLog(`战场时间 ${state.battleTick}：一箭双雕弹射至 ${nextTarget.name}。`);
+  const bounceProjectile = createProjectile({
+    name: "一箭双雕·弹射",
+    type: "homing",
+    actor,
+    targetId: nextTarget.id,
+    direction: directionToward(firstTarget.position, nextTarget.position),
+    startPos: firstTarget.position,
+    speed: projectile.speed || actor.projectileSpeed || 3,
+    maxDistance: 6,
+    damage: Math.max(1, projectile.damage - 2),
+    effect: "mfQBounce",
+  });
+  state.projectiles.push(bounceProjectile);
+  renderProjectiles();
+  await sleep(120);
+  await advanceProjectileToEnd(bounceProjectile);
 }
 
 function missFortuneQSecondHitCells(actor, firstTarget) {
@@ -2443,7 +3065,7 @@ async function createBubbleTrap(projectile) {
   const trapSkill = { name: "催眠气泡陷阱", damage: 0, areaRadius: 1, duration: projectile.trapDuration || 2 };
   const zone = createZone(owner, trapSkill, projectile.pos, { effect: "bubbleTrap", remaining: projectile.trapDuration || 2 });
   state.zones.push(zone);
-  addLog(`战场时间 ${state.battleTick}：催眠气泡形成陷阱。`);
+  addLog(`战斗回合 ${state.battleTick}：催眠气泡形成陷阱。`);
   await applyZoneEffect(zone, true);
 }
 
@@ -2464,7 +3086,7 @@ function tickDurations() {
     });
     character.statuses.filter((status) => status.remaining <= 0).forEach((status) => {
       if (status.type === "channel") removeChannelZone(character);
-      addLog(`战场时间 ${state.battleTick}：${character.name}的${statusLabel(status).replace(/\s.*/, "")}结束。`);
+      addLog(`战斗回合 ${state.battleTick}：${character.name}的${statusLabel(status).replace(/\s.*/, "")}结束。`);
     });
     character.statuses = character.statuses.filter((status) => status.remaining > 0);
   });
@@ -2472,7 +3094,7 @@ function tickDurations() {
     if (wall.createdTick < state.battleTick) wall.remaining -= 1;
     if (wall.remaining <= 0) {
       wall.removed = true;
-      addLog(`战场时间 ${state.battleTick}：风墙消散。`);
+      addLog(`战斗回合 ${state.battleTick}：风墙消散。`);
     }
   });
   state.projectiles.forEach((projectile) => {
@@ -2520,7 +3142,7 @@ async function scheduleNextTurn() {
 
   if (state.timeProgress >= ACTION_BAR_LENGTH - 0.01) {
     state.timeProgress = 0;
-    await advanceBattlefieldTime("战场时间结算");
+    await advanceBattlefieldTime("战斗回合结算");
     if (!state.gameOver) await scheduleNextTurn();
     return;
   }
@@ -2528,6 +3150,7 @@ async function scheduleNextTurn() {
   const actor = advancing.filter((character) => character.actionProgress >= ACTION_BAR_LENGTH - 0.01).sort((a, b) => effectiveActionSpeed(b) - effectiveActionSpeed(a))[0];
   if (!actor) return;
   state.currentActorId = actor.id;
+  clearManualViewCenter();
   els.targetHint.textContent = actor.team === "player" ? `请选择 ${actor.name} 的行动` : "敌方 AI 思考中";
   renderAll();
   if (hasStatus(actor, "stun")) {
@@ -2544,7 +3167,7 @@ async function skipStunnedTurn(actor) {
   state.isAnimating = true;
   showToast(`${actor.name}被晕眩，无法行动`);
   addFloating(actor.position, "晕眩", "control");
-  addLog(`战场时间 ${state.battleTick}：${actor.name}被晕眩，跳过行动。`);
+  addLog({ type: "skip", tick: state.battleTick, actorId: actor.id, text: `${actor.name}被晕眩，跳过行动。` });
   await sleep(600);
   await completeAction(actor, false);
 }
@@ -2617,6 +3240,7 @@ function dealDamage(source, target, amount, reason, options = {}) {
     removeStatus(target, "illumination");
     remaining += 12;
   }
+  const incoming = remaining;
   const shields = target.statuses.filter((status) => status.type === "shield" && status.amount > 0);
   for (const shield of shields) {
     if (remaining <= 0) break;
@@ -2631,12 +3255,16 @@ function dealDamage(source, target, amount, reason, options = {}) {
     target.lastDamagedTick = state.battleTick;
     target.temp.mfWBoost = 0;
     addFloating(target.position, `-${remaining}`, "damage");
-    addLog(`战场时间 ${state.battleTick}：${reason}命中 ${target.name}，造成 ${remaining} 伤害。`);
+    recordDamageLog(source, target, remaining, { reason, type: isBasicAttackReason(reason) ? "attack" : "skill" });
   } else {
-    addLog(`战场时间 ${state.battleTick}：${reason}命中 ${target.name}，伤害被护盾吸收。`);
+    recordDamageLog(source, target, incoming, { reason, blocked: true, type: isBasicAttackReason(reason) ? "attack" : "skill" });
   }
-  if (options.skillDamage && source?.heroKey === "lux" && target.isAlive) applyStatus(target, "illumination", 3);
+  if (options.skillDamage && source?.heroKey === "lux" && target.isAlive) applyStatus(target, "illumination", 3, { sourceId: source.id });
   if (target.hp <= 0) killCharacter(target, source);
+}
+
+function isBasicAttackReason(reason) {
+  return String(reason || "").includes("普攻") || String(reason || "").includes("普通攻击");
 }
 
 function applyMissFortuneTargetPassive(source, target, amount, options = {}) {
@@ -2670,7 +3298,7 @@ function killCharacter(target, source) {
   target.isAlive = false;
   target.isDying = true;
   target.hp = 0;
-  addLog(`战场时间 ${state.battleTick}：${target.name}被${source?.name || "效果"}击败。`);
+  addLog(`战斗回合 ${state.battleTick}：${target.name}被${source?.name || "效果"}击败。`);
   state.projectiles.forEach((projectile) => {
     if (projectile.type === "homing" && projectile.targetId === target.id) {
       projectile.targetId = null;
@@ -2697,15 +3325,18 @@ function applyStatus(target, type, duration, extra = {}) {
   if (type === "sleep") removeStatus(target, "channel");
 }
 
-function applyShield(target, amount, duration) {
+function applyShield(target, amount, duration, extra = {}) {
+  const source = extra.sourceId ? getCharacter(extra.sourceId) : target;
   const existing = getStatus(target, "shield");
   if (existing) {
     existing.amount = Math.max(existing.amount, amount);
     existing.remaining = Math.max(existing.remaining, duration);
     existing.appliedTick = state.battleTick;
+    Object.assign(existing, extra);
   } else {
-    target.statuses.push({ type: "shield", amount, remaining: duration, appliedTick: state.battleTick });
+    target.statuses.push({ type: "shield", amount, remaining: duration, appliedTick: state.battleTick, ...extra });
   }
+  recordShieldLog(source, target, amount, "护盾技能");
 }
 
 function removeStatus(target, type) {
@@ -2735,6 +3366,7 @@ function skillUsable(actor, key) {
   if ((currentSkill.kind === "dash" || currentSkill.kind === "yasuoE") && hasStatus(actor, "root")) return false;
   if ((currentSkill.kind === "flash" || currentSkill.kind === "zoeR") && hasStatus(actor, "root")) return false;
   if (actor.heroKey === "lux" && key === "e" && getLuxField(actor)) return true;
+  if (actor.heroKey === "zoe" && key === "q" && activeZoeQStar(actor)) return actor.temp.zoeQRecastUntil >= state.battleTick;
   return currentSkill.currentCooldown <= 0 || (actor.heroKey === "zoe" && key === "q" && actor.temp.zoeQRecastUntil >= state.battleTick);
 }
 
@@ -2747,6 +3379,11 @@ function setCooldown(actor, skillKey) {
   if (currentSkill && !(actor.heroKey === "zoe" && skillKey === "q" && actor.temp.zoeQRecastUntil >= state.battleTick)) {
     currentSkill.currentCooldown = currentSkill.cooldown;
   }
+}
+
+function activeZoeQStar(actor) {
+  if (!actor) return null;
+  return state.projectiles.find((projectile) => projectile.ownerId === actor.id && projectile.effect === "zoeQ" && !projectile.removed);
 }
 
 function effectiveActionSpeed(character) {
@@ -2847,6 +3484,28 @@ function rayCellsFromPoint(origin, targetPoint, maxDistance = HEX_RADIUS * 2) {
   return linePathFromPixels(origin, start, end, maxDistance);
 }
 
+function fixedDistanceLine(actor, currentSkill, targetPoint = null) {
+  const maxDistance = currentSkill.maxDistance || currentSkill.range || HEX_RADIUS * 2;
+  const start = hexToPixel(actor.position);
+  const end = resolveRayTargetPoint(actor, { maxDistance }, targetPoint);
+  let pathCells = linePathFromPixels(actor.position, start, end, maxDistance);
+  const targetCell = pathCells[pathCells.length - 1] || nearestCellToPointInRange(actor.position, end, maxDistance);
+  if (!pathCells.length && targetCell) pathCells = [cloneCoord(targetCell)];
+  return { targetPoint: end, targetCell, pathCells };
+}
+
+function nearestCellToPointInRange(origin, point, maxDistance) {
+  return getCellsInRange(origin, maxDistance)
+    .filter((cell) => hexDistance(origin, cell) > 0)
+    .sort((a, b) => {
+      const aDistance = hexDistance(origin, a);
+      const bDistance = hexDistance(origin, b);
+      const farthestFirst = bDistance - aDistance;
+      if (farthestFirst) return farthestFirst;
+      return distance(hexToPixel(a), point) - distance(hexToPixel(b), point);
+    })[0] || null;
+}
+
 function defaultRayTargetPoint(actor, currentSkill) {
   const start = hexToPixel(actor.position);
   return { x: start.x + hexRangePixelDistance(currentSkill.maxDistance || HEX_RADIUS * 2), y: start.y };
@@ -2930,7 +3589,7 @@ function ensureProjectileLinePath(projectile) {
 
 function projectilePathPoint(projectile, cell) {
   const start = hexToPixel(projectile.pathStart || projectile.pos);
-  const end = hexToPixel(projectile.pathTarget || projectile.targetCell || cell);
+  const end = projectile.pathTargetPoint || hexToPixel(projectile.pathTarget || projectile.targetCell || cell);
   if (projectile.targetCell && coordsEqual(cell, projectile.targetCell)) return end;
   const ratio = pointSegmentProjectionRatio(hexToPixel(cell), start, end);
   return {
@@ -3034,7 +3693,7 @@ function pickupShard(actor) {
   if (!shard) return;
   actor.temp.spellShard = shard.spell;
   state.shards = state.shards.filter((item) => item.id !== shard.id);
-  addLog(`战场时间 ${state.battleTick}：${actor.name}拾取法术碎片：闪现。`);
+  addLog(`战斗回合 ${state.battleTick}：${actor.name}拾取法术碎片：闪现。`);
 }
 
 function dropShard(position) {
@@ -3044,7 +3703,7 @@ function dropShard(position) {
 function spawnPeriodicShard() {
   if (state.battleTick > 0 && state.battleTick % 3 === 0) {
     dropShard(randomEmptyCell(state.cells, new Set(state.characters.filter((c) => c.isAlive).map((c) => coordKey(c.position)))));
-    addLog(`战场时间 ${state.battleTick}：地图上生成一个法术碎片。`);
+    addLog(`战斗回合 ${state.battleTick}：地图上生成一个法术碎片。`);
   }
 }
 
@@ -3059,11 +3718,14 @@ function handleReturnPortal(actor) {
   actor.temp.returnReady = false;
   if (actor.isAlive && !getCharacterAt(back)) {
     actor.position = cloneCoord(back);
-    addLog(`战场时间 ${state.battleTick}：${actor.name}折返跃迁回到原位。`);
+    addLog(`战斗回合 ${state.battleTick}：${actor.name}折返跃迁回到原位。`);
   }
 }
 
 function cleanupEntities() {
+  state.projectiles.forEach((projectile) => {
+    if (projectile.removed && projectile.effect === "zoeQ") startZoeQCooldown(projectile);
+  });
   state.projectiles = state.projectiles.filter((projectile) => !projectile.removed);
   state.zones.forEach((zone) => {
     if (zone.removed) startZoneCooldown(zone);
@@ -3075,6 +3737,18 @@ function cleanupEntities() {
   });
 }
 
+function startZoeQCooldown(projectile) {
+  if (!projectile || projectile.cooldownStarted) return;
+  const owner = getCharacter(projectile.ownerId);
+  const currentSkill = owner?.skills?.q;
+  if (!owner || owner.heroKey !== "zoe" || !currentSkill) return;
+  projectile.cooldownStarted = true;
+  owner.temp.zoeQRecastUntil = -Infinity;
+  const offset = state.isBattlefieldSettling ? 1 : 0;
+  currentSkill.currentCooldown = Math.max(currentSkill.currentCooldown, currentSkill.cooldown + offset);
+  addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}结束，Q技能进入冷却。`);
+}
+
 function startZoneCooldown(zone) {
   if (!zone?.cooldownSkillKey || zone.cooldownStarted) return;
   const owner = getCharacter(zone.ownerId);
@@ -3083,7 +3757,7 @@ function startZoneCooldown(zone) {
   zone.cooldownStarted = true;
   const offset = state.isBattlefieldSettling ? 1 : 0;
   currentSkill.currentCooldown = Math.max(currentSkill.currentCooldown, currentSkill.cooldown + offset);
-  addLog(`战场时间 ${state.battleTick}：${zone.name}消失，${currentSkill.key}技能进入冷却。`);
+  addLog(`战斗回合 ${state.battleTick}：${zone.name}消失，${currentSkill.key}技能进入冷却。`);
 }
 
 function checkGameOver() {
@@ -3094,10 +3768,33 @@ function checkGameOver() {
     state.gameOver = true;
     state.currentActorId = null;
     state.selection = null;
-    showToast(enemies.length ? "失败" : "胜利");
+    const didWin = !enemies.length;
+    showToast(didWin ? "胜利" : "失败");
     addLog(enemies.length ? "失败：全部友军倒下。" : "胜利：全部敌人倒下。");
+    showGameResultOverlay(didWin);
     renderAll();
   }
+}
+
+function showGameResultOverlay(didWin) {
+  if (!els.gameResultOverlay) return;
+  els.gameResultTitle.textContent = didWin ? "胜利！" : "失败";
+  els.gameResultHeroes.replaceChildren();
+  state.characters.filter((character) => character.team === "player").forEach((character) => {
+    const item = document.createElement("div");
+    item.className = "game-result-hero";
+    const img = document.createElement("img");
+    img.src = character.asset;
+    img.alt = "";
+    item.append(img, textEl("span", "", character.name));
+    els.gameResultHeroes.append(item);
+  });
+  els.gameResultOverlay.hidden = false;
+}
+
+function hideGameResultOverlay() {
+  if (!els.gameResultOverlay) return;
+  els.gameResultOverlay.hidden = true;
 }
 
 function setTempUnitClass(id, className) {
@@ -3115,15 +3812,243 @@ function showToast(message) {
   els.eventToast.classList.add("show");
 }
 
-function addLog(message) {
-  state.log.push(message);
+function addLog(entry) {
+  const normalized = normalizeLogEntry(entry);
+  if (state.pendingLog && typeof entry === "string") {
+    state.pendingLog.note = normalized.text;
+    return;
+  }
+  state.log.push(normalized);
+  renderBattleLog();
+}
+
+function renderBattleLog() {
   els.battleLog.innerHTML = "";
   state.log.forEach((entry) => {
-    const item = document.createElement("li");
-    item.textContent = entry;
-    els.battleLog.append(item);
+    els.battleLog.append(renderLogEntry(entry));
   });
   els.battleLog.scrollTop = els.battleLog.scrollHeight;
+}
+
+function normalizeLogEntry(entry) {
+  if (entry && typeof entry === "object") {
+    return {
+      tick: entry.tick ?? state.battleTick,
+      type: entry.type || "action",
+      actorId: entry.actorId || null,
+      actionName: entry.actionName || "",
+      results: entry.results || [],
+      text: entry.text || "",
+    };
+  }
+  const raw = String(entry || "");
+  const match = raw.match(/^战斗回合\s*(\d+)：(.+)$/);
+  return {
+    tick: match ? Number(match[1]) : state.battleTick,
+    type: inferLogTypeFromText(raw),
+    actorId: null,
+    actionName: "",
+    results: [],
+    text: match ? match[2] : raw,
+  };
+}
+
+function inferLogTypeFromText(text) {
+  const raw = String(text || "");
+  if (raw.includes("战斗回合结算")) return "time";
+  if (raw.includes("移动")) return "move";
+  if (raw.includes("护盾")) return "shield";
+  if (raw.includes("治疗")) return "heal";
+  if (raw.includes("攻击") || raw.includes("普攻")) return "attack";
+  const skillTerms = ["法术碎片", "技能", "领域", "光辉", "飞星", "气泡", "陷阱", "风墙", "弹幕", "枪林弹雨", "弹雨", "一箭双雕", "终极闪光", "棱光护盾", "斩钢闪", "踏前斩", "折返跃迁", "消散", "消失", "达到最大距离"];
+  if (skillTerms.some((term) => raw.includes(term))) return "skill";
+  return "action";
+}
+
+function renderLogEntry(entry) {
+  const item = document.createElement("li");
+  item.className = `log-entry ${entry.type || "action"}`;
+  const visual = document.createElement("div");
+  visual.className = "log-visual";
+  visual.append(logTimeNode(entry.tick));
+  const actor = entry.actorId ? getCharacter(entry.actorId) : null;
+  if (actor) visual.append(logAvatarNode(actor));
+  visual.append(uiIconNode(logIconName(entry.type), "log-action-icon"));
+  (entry.results || []).forEach((result) => visual.append(logResultNode(result)));
+  const text = textEl("span", "log-text", entry.text || "事件发生。");
+  item.append(visual, text);
+  return item;
+}
+
+function logTimeNode(tick) {
+  const node = document.createElement("span");
+  node.className = "log-time";
+  node.append(uiIconNode("time", "log-time-icon"));
+  node.append(textEl("b", "", tick));
+  return node;
+}
+
+function logAvatarNode(character) {
+  const img = document.createElement("img");
+  img.className = `log-avatar ${character.team === "player" ? "player" : "enemy"}`;
+  img.src = character.asset;
+  img.alt = "";
+  return img;
+}
+
+function logResultNode(result) {
+  const node = document.createElement("span");
+  node.className = "log-result";
+  const target = getCharacter(result.targetId);
+  if (target) node.append(logAvatarNode(target));
+  if (result.value === null || result.value === undefined) return node;
+  const value = Number(result.value || 0);
+  const number = textEl("strong", `log-number ${result.kind || "damage"} ${result.blocked ? "blocked" : ""}`, logSignedValue(value, result.kind));
+  node.append(number);
+  return node;
+}
+
+function logSignedValue(value, kind) {
+  if (kind === "heal" || kind === "shield") return `+${value}`;
+  return `-${value}`;
+}
+
+function logIconName(type) {
+  if (type === "attack") return "attack";
+  if (type === "skill") return "skill";
+  if (type === "move") return "move";
+  if (type === "time") return "time";
+  if (type === "heal") return "heal";
+  if (type === "shield") return "shield";
+  if (type === "skip") return "skip";
+  return "action";
+}
+
+function beginActionLog(actor, action) {
+  state.pendingLog = {
+    tick: state.battleTick,
+    actorId: actor.id,
+    actionName: action.name,
+    type: action.logType || inferActionLogType(action.name),
+    results: [],
+    note: "",
+  };
+}
+
+function inferActionLogType(actionName) {
+  if (actionName.includes("移动")) return "move";
+  if (actionName.includes("普通攻击")) return "attack";
+  if (actionName.includes("跳过") || actionName.includes("原地不动")) return "skip";
+  return "skill";
+}
+
+function recordDamageLog(source, target, value, options = {}) {
+  if (!source || !target) return;
+  const result = { targetId: target.id, value: Math.max(0, Math.round(value)), kind: "damage", blocked: Boolean(options.blocked) };
+  const pending = state.pendingLog && state.pendingLog.actorId === source.id ? state.pendingLog : null;
+  if (pending) {
+    pending.type = pending.type === "attack" ? "attack" : "skill";
+    pending.results.push(result);
+    return;
+  }
+  const type = options.type || (isBasicAttackReason(options.reason) ? "attack" : "skill");
+  addLog({
+    type,
+    tick: state.battleTick,
+    actorId: source.id,
+    actionName: options.reason || "",
+    results: [result],
+    text: type === "attack" ? `${source.name}攻击了${target.name}。` : `${source.name}施放${options.reason || "技能"}击中了${target.name}。`,
+  });
+}
+
+function recordEffectTargetLog(source, target, reason = "技能") {
+  if (!source || !target) return;
+  const result = { targetId: target.id, value: null, kind: "effect" };
+  const pending = state.pendingLog && state.pendingLog.actorId === source.id ? state.pendingLog : null;
+  if (pending) {
+    pending.type = "skill";
+    pending.results.push(result);
+    return;
+  }
+  addLog({
+    type: "skill",
+    tick: state.battleTick,
+    actorId: source.id,
+    actionName: reason,
+    results: [result],
+    text: `${source.name}施放${reason}击中了${target.name}。`,
+  });
+}
+
+function recordShieldLog(source, target, value, reason = "技能") {
+  if (!source || !target || value <= 0) return;
+  const result = { targetId: target.id, value: Math.round(value), kind: "shield" };
+  const pending = state.pendingLog && state.pendingLog.actorId === source.id ? state.pendingLog : null;
+  if (pending) {
+    pending.type = "shield";
+    pending.results.push(result);
+    return;
+  }
+  addLog({
+    type: "shield",
+    tick: state.battleTick,
+    actorId: source.id,
+    actionName: reason,
+    results: [result],
+    text: `${source.name}施放${reason}为${target.name}提供了护盾。`,
+  });
+}
+
+function recordHealLog(source, target, value, reason = "技能") {
+  if (!source || !target || value <= 0) return;
+  const result = { targetId: target.id, value: Math.round(value), kind: "heal" };
+  const pending = state.pendingLog && state.pendingLog.actorId === source.id ? state.pendingLog : null;
+  if (pending) {
+    pending.type = "heal";
+    pending.results.push(result);
+    return;
+  }
+  addLog({
+    type: "heal",
+    tick: state.battleTick,
+    actorId: source.id,
+    actionName: reason,
+    results: [result],
+    text: `${source.name}施放${reason}治疗了${target.name}。`,
+  });
+}
+
+function flushActionLog(actor, action) {
+  const pending = state.pendingLog;
+  if (!pending || pending.actorId !== actor.id) return;
+  state.pendingLog = null;
+  addLog({
+    type: pending.type,
+    tick: pending.tick,
+    actorId: actor.id,
+    actionName: pending.actionName,
+    results: pending.results,
+    text: buildActionLogText(actor, action, pending),
+  });
+}
+
+function buildActionLogText(actor, action, pending) {
+  const targets = pending.results.map((result) => getCharacter(result.targetId)).filter(Boolean);
+  const names = joinNames([...new Set(targets.map((target) => target.name))]);
+  if (pending.type === "move") return `${actor.name}进行了移动。`;
+  if (pending.type === "skip") return `${actor.name}跳过了行动。`;
+  if (pending.type === "attack") return targets.length ? `${actor.name}攻击了${names}。` : `${actor.name}进行了攻击。`;
+  if (pending.type === "shield") return targets.length ? `${actor.name}施放${action.name}为${names}提供了护盾。` : `${actor.name}施放了${action.name}。`;
+  if (pending.type === "heal") return targets.length ? `${actor.name}施放${action.name}治疗了${names}。` : `${actor.name}施放了${action.name}。`;
+  if (targets.length) return `${actor.name}施放${action.name}击中了${names}。`;
+  return `${actor.name}施放了${action.name}。`;
+}
+
+function joinNames(names) {
+  if (!names.length) return "";
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join("、")}和${names[names.length - 1]}`;
 }
 
 function addFloating(coord, text, type) {
@@ -3271,6 +4196,9 @@ function directionToward(from, to) {
 }
 
 function projectileAngle(projectile) {
+  if (projectile.pathStart && projectile.pathTargetPoint) {
+    return angleBetweenPoints(hexToPixel(projectile.pathStart), projectile.pathTargetPoint);
+  }
   if (projectile.pathStart && projectile.pathTarget) {
     return angleBetweenPoints(hexToPixel(projectile.pathStart), hexToPixel(projectile.pathTarget));
   }
