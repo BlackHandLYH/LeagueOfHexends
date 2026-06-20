@@ -8,18 +8,33 @@ const BATTLEFIELD_TIME_SPEED = 100;
 const BATTLEFIELD_TIME_ID = "battlefield-time";
 const SQRT_3 = Math.sqrt(3);
 const LIGHT_ORB_ASSET = "assets/ni-guang-q-light-orb.svg";
-const HOURGLASS_ASSET = "assets/沙漏.svg";
+const UNKNOWN_HERO_ASSET = "assets/UI/未知.svg";
+const HOURGLASS_ASSET = "assets/UI/沙漏.svg";
 const ICON_ASSETS = {
-  attack: "assets/攻击.svg",
-  skill: "assets/技能.svg",
-  move: "assets/移动.svg",
-  time: "assets/时间.svg",
-  heal: "assets/治疗.svg",
-  shield: "assets/护盾.svg",
-  action: "assets/行动.svg",
-  skip: "assets/跳过.svg",
-  health: "assets/生命.svg",
-  attackRange: "assets/攻击距离.svg",
+  attack: "assets/UI/攻击.svg",
+  skill: "assets/UI/技能.svg",
+  move: "assets/UI/移动.svg",
+  time: "assets/UI/时间.svg",
+  heal: "assets/UI/治疗.svg",
+  shield: "assets/UI/护盾.svg",
+  action: "assets/UI/行动.svg",
+  skip: "assets/UI/跳过.svg",
+  health: "assets/UI/生命.svg",
+  attackRange: "assets/UI/攻击距离.svg",
+};
+const HERO_ASSETS = {
+  lux: ["assets/你光/你光.png", "assets/你光/你光_skin_1.png", "assets/你光/你光_skin_2.png", "assets/你光/你光_skin_3.png", "assets/你光/你光_skin_4.png"],
+  yasuo: ["assets/压缩/压缩.png", "assets/压缩/压缩_skin_1.png", "assets/压缩/压缩_skin_2.png", "assets/压缩/压缩_skin_3.png"],
+  mf: ["assets/女枪/女枪.png", "assets/女枪/女枪_skin_1.png", "assets/女枪/女枪_skin_2.png", "assets/女枪/女枪_skin_3.png", "assets/女枪/女枪_skin_4.png"],
+  zoe: ["assets/佐伊/佐伊.png", "assets/佐伊/佐伊_skin_1.png"],
+  velkoz: ["assets/大眼/大眼.png"],
+  janna: ["assets/你风/你风.png", "assets/你风/你风_skin_1.png"],
+  ahri: ["assets/你狸/你狸.png", "assets/你狸/你狸_skin_1.png", "assets/你狸/你狸_skin_2.png", "assets/你狸/你狸_skin_3.png", "assets/你狸/你狸_skin_4.png", "assets/你狸/你狸_skin_5.png"],
+  fizz: [UNKNOWN_HERO_ASSET, "assets/你鱼/你鱼_skin_1.png", "assets/你鱼/你鱼_skin_2.png"],
+  sona: ["assets/我琴/我琴.png", "assets/我琴/我琴_skin_1.png", "assets/我琴/我琴_skin_2.png", "assets/我琴/我琴_skin_3.png", "assets/我琴/我琴_skin_4.png"],
+  xayah: ["assets/霞/霞.png", "assets/霞/霞_skin_1.png"],
+  ezreal: ["assets/EZ/EZ.png", "assets/EZ/EZ_skin_1.png", "assets/EZ/EZ_skin_2.png"],
+  rakan: ["assets/洛/洛.png", "assets/洛/洛_skin_1.png"],
 };
 const LINE_HEX_MIN_INTERSECTION = HEX_SIZE * 0.28;
 
@@ -35,7 +50,8 @@ const DIRECTIONS = [
 const HEROES = {
   lux: {
     name: "你光",
-    asset: "assets/lux.webp",
+    asset: HERO_ASSETS.lux[0],
+    assets: HERO_ASSETS.lux,
     hp: 100,
     actionSpeed: 150,
     attackType: "ranged",
@@ -51,14 +67,15 @@ const HEROES = {
     skills: {
       q: skill("Q", "光之束缚", "direction", "非指向性 / 投射物 / 控制", "选择任意方向发射光球，光球会飞至最远射程。对命中的前两个敌人造成18点伤害，并使其获得【禁锢】，持续2个回合。", 3, 18, 6, { projectileSpeed: 2, rootDuration: 2, maxDistance: 6, maxHits: 2 }),
       w: skill("W", "棱光护盾", "shieldLine", "投射物 / 护盾", "选择任意方向投出护盾光球，光球会飞至最远射程。拉克丝自身与光球经过的友军获得20点护盾，持续3个回合。", 4, 0, 6, { shield: 20, duration: 3, maxDistance: 6 }),
-      e: skill("E", "光辉领域", "luxField", "范围 / 持续 / 减速 / 引爆", "选择4格内目标点生成光辉领域，目标格及相邻1格成为领域范围，持续2个回合。领域内敌人行动速度降低30%。领域存在时再次施放会引爆领域，造成22点伤害并结束领域。", 4, 22, 4, { areaRadius: 1, duration: 2, slow: 0.3 }),
+      e: skill("E", "光辉领域", "luxField", "重施 / 范围 / 持续 / 减速 / 引爆", "首次施放：选择4格内目标点生成光辉领域，目标格及相邻1格成为领域范围，持续2个回合。领域内敌人行动速度降低30%。\n重施：引爆领域，造成22点伤害并结束领域。", 4, 22, 4, { areaRadius: 1, duration: 2, slow: 0.3 }),
       r: skill("R", "终极闪光", "beam", "方向 / 射线", "选择任意方向发射射程无限的直线射线，对路径上的所有敌人造成28点伤害。命中时先消耗【光芒四射】，再重新施加【光芒四射】。", 10, 28, 99, { maxDistance: 26 }),
       flash: flashSkill(),
     },
   },
   yasuo: {
     name: "压缩",
-    asset: "assets/yasuo_0.png",
+    asset: HERO_ASSETS.yasuo[0],
+    assets: HERO_ASSETS.yasuo,
     hp: 120,
     actionSpeed: 200,
     attackType: "melee",
@@ -80,7 +97,8 @@ const HEROES = {
   },
   mf: {
     name: "女枪",
-    asset: "assets/miss_fortune.png",
+    asset: HERO_ASSETS.mf[0],
+    assets: HERO_ASSETS.mf,
     hp: 105,
     actionSpeed: 160,
     attackType: "ranged",
@@ -103,7 +121,8 @@ const HEROES = {
   },
   zoe: {
     name: "佐伊",
-    asset: "assets/zoe.png",
+    asset: HERO_ASSETS.zoe[0],
+    assets: HERO_ASSETS.zoe,
     hp: 90,
     actionSpeed: 170,
     attackType: "ranged",
@@ -117,7 +136,7 @@ const HEROES = {
       description: "佐伊施放技能后的下一次普通攻击额外造成8点伤害。",
     },
     skills: {
-      q: skill("Q", "飞星乱入", "zoeQ", "投射物 / 爆发", "首次施放：选择4格内目标点发射飞星。飞星每飞行1格，伤害提高15%。命中敌人后，造成16点基础伤害，并对目标1格范围内其他敌人造成50%溅射伤害。飞星抵达目标点后停留2个回合。\n再次施放：在飞星停留期间，重新指定飞星飞向新的目标点。", 3, 16, 4, { projectileSpeed: 4, recastWindow: 2, pauseDuration: 2, damagePerCell: 0.15 }),
+      q: skill("Q", "飞星乱入", "zoeQ", "重施 / 投射物 / 爆发", "首次施放：选择4格内目标点发射飞星。飞星每飞行1格，伤害提高15%。命中敌人后，造成16点基础伤害，并对目标1格范围内其他敌人造成50%溅射伤害。飞星抵达目标点后停留2个回合。\n重施：在飞星停留期间，重新指定飞星飞向新的目标点。", 3, 16, 4, { projectileSpeed: 4, recastWindow: 2, pauseDuration: 2, damagePerCell: 0.15 }),
       w: skill("W", "窃法巧手", "zoeW", "法术碎片", "被动：佐伊可以拾取地图上的法术碎片。\n主动：若持有法术碎片，消耗碎片并施放对应效果。本版本的法术碎片为一次性闪现。", 0, 0, 0),
       e: skill("E", "催眠气泡", "zoeE", "投射物 / 控制 / 陷阱", "选择攻击范围内目标点发射气泡。气泡命中敌人或陷阱触发时，使目标获得【困倦】；下个回合结算时，【困倦】转化为【昏睡】，持续2个回合。若气泡抵达目标点时未命中敌人，则生成半径1的陷阱，持续2个回合。", 5, 0, 4, { projectileSpeed: 1, trapDuration: 2 }),
       r: skill("R", "折返跃迁", "zoeR", "位移 / 瞬发", "选择4格内指定位置，立刻传送到该位置。佐伊会在下次行动结束后返回原位置。", 6, 0, 4),
@@ -126,14 +145,61 @@ const HEROES = {
   },
 };
 
-const HERO_ORDER = ["lux", "yasuo", "mf", "zoe"];
+Object.assign(HEROES, {
+  velkoz: placeholderHero("大眼", HERO_ASSETS.velkoz, "ranged", 4, { hp: 96, actionSpeed: 148, attackDamage: 12, moveRange: 2 }),
+  janna: placeholderHero("你风", HERO_ASSETS.janna, "ranged", 4, { hp: 92, actionSpeed: 158, attackDamage: 10, moveRange: 3 }),
+  ahri: placeholderHero("你狸", HERO_ASSETS.ahri, "ranged", 4, { hp: 102, actionSpeed: 168, attackDamage: 11, moveRange: 2 }),
+  fizz: placeholderHero("你鱼", HERO_ASSETS.fizz, "ranged", 4, { hp: 108, actionSpeed: 176, attackDamage: 12, moveRange: 3 }),
+  sona: placeholderHero("我琴", HERO_ASSETS.sona, "ranged", 4, { hp: 94, actionSpeed: 142, attackDamage: 9, moveRange: 2 }),
+  xayah: placeholderHero("霞", HERO_ASSETS.xayah, "ranged", 4, { hp: 106, actionSpeed: 172, attackDamage: 13, moveRange: 2 }),
+  ezreal: placeholderHero("EZ", HERO_ASSETS.ezreal, "ranged", 4, { hp: 100, actionSpeed: 182, attackDamage: 12, moveRange: 3 }),
+  rakan: placeholderHero("洛", HERO_ASSETS.rakan, "melee", 2, { hp: 116, actionSpeed: 188, attackDamage: 12, moveRange: 3 }),
+});
+
+Object.assign(HEROES.janna, {
+  passive: {
+    name: "顺风而行",
+    description: "距离你风2格内的其他友军获得10%行动速度加成。",
+  },
+  skills: {
+    q: skill("Q", "飓风呼啸", "jannaQ", "重施 / 控制 / 蓄力", "首次施放：选择任意方向，在当前位置积攒一道龙卷风。每经过1个回合，伤害提高20%、前进距离增加2格、【击飞】持续时间增加1个回合，至多强化3次。\n重施：释放龙卷风，初始前进2格，对命中的敌人造成12点伤害并施加【击飞】，持续1个回合。", 5, 12, 2, { maxDistance: 2, chargeLimit: 3, chargeRange: 2, chargeDamage: 0.2, airborneDuration: 1 }),
+    w: skill("W", "和风守护", "jannaW", "投射物 / 伤害", "选择4格内一名敌人发射投射物，造成等同于你风当前行动速度10%的伤害。", 3, 0, 4, { projectileSpeed: 3, speedRatio: 0.1 }),
+    e: skill("E", "风暴之眼", "jannaE", "护盾 / 强化", "选择4格内一名友军，使其获得20点护盾，持续3个回合。护盾存在时，目标获得10点攻击力。", 4, 0, 4, { shield: 20, duration: 3, attackBonus: 10 }),
+    r: skill("R", "复苏季风", "jannaR", "治疗 / 控制 / 引导", "开始引导并展开3格范围的结界。施放时将范围内敌人推至结界外，并为范围内所有友军回复10点生命。至多引导2个回合；每次继续引导时，再次治疗范围内友军。", 10, 0, 3, { areaRadius: 3, duration: 2, heal: 10 }),
+    flash: flashSkill(),
+  },
+});
+
+Object.assign(HEROES.velkoz, {
+  passive: {
+    name: "有机体解构",
+    description: "技能伤害附加1层【解构】。达到3层时造成33点额外伤害，移除【解构】并施加【研究】，持续2个回合。大眼对【研究】目标造成50%额外伤害；【研究】期间不会附加【解构】。",
+  },
+  skills: {
+    q: skill("Q", "等离子裂变", "velkozQ", "投射物 / 分裂", "选择6格内目标位置发射等离子飞弹，造成14点伤害。飞弹抵达目标位置或提前命中敌人时，向原路径左右垂直方向分裂为两枚飞弹。", 4, 14, 6, { projectileSpeed: 3, splitRange: 4 }),
+    w: skill("W", "虚空裂隙", "velkozW", "方向 / 范围 / 持续", "选择任意方向开启长度5格的虚空裂隙，对其中敌人造成10点伤害。裂隙保留至下个回合，再次造成10点伤害后消失。", 5, 10, 5, { maxDistance: 5, duration: 1 }),
+    e: skill("E", "构造分解", "velkozE", "范围 / 延迟 / 控制", "选择5格内目标位置，使目标位置及周围1格进入【分解】。下个回合开始时造成12点伤害并施加【击飞】，持续1个回合。", 5, 12, 5, { areaRadius: 1, delay: 1, airborneDuration: 1 }),
+    r: skill("R", "生命形态瓦解射线", "velkozR", "方向 / 射线 / 引导", "选择任意方向开始引导长度6格的射线，造成9点伤害。至多引导2个回合。继续引导时可重新选择方向，但与上一次方向夹角不能超过30度；继续引导命中的敌人会获得【研究】。", 10, 9, 6, { maxDistance: 6, duration: 2, turnAngle: 30 }),
+    flash: flashSkill(),
+  },
+});
+
+const HERO_ORDER = ["lux", "yasuo", "mf", "zoe", "velkoz", "janna", "ahri", "fizz", "sona", "xayah", "ezreal", "rakan"];
 const SKILL_ORDER = ["q", "w", "e", "r"];
 
 const HERO_PROFILES = {
-  lux: { role: "后排法师", summary: "远程控制 / 护盾保护 / 区域压制" },
-  yasuo: { role: "近战剑客", summary: "直线斩击 / 位移穿插 / 浮空爆发" },
-  mf: { role: "火力射手", summary: "弹射收割 / 范围压制 / 引导扫射" },
-  zoe: { role: "机动法师", summary: "飞星爆发 / 催眠控制 / 折返位移" },
+  lux: { role: "远程法师", summary: "远程控制 / 护盾保护 / 区域压制" },
+  yasuo: { role: "近战刺客", summary: "直线斩击 / 位移穿插 / 浮空爆发" },
+  mf: { role: "远程射手", summary: "弹射收割 / 范围压制 / 引导扫射" },
+  zoe: { role: "远程法师", summary: "飞星爆发 / 催眠控制 / 折返位移" },
+  velkoz: { role: "远程法师", summary: "技能伤害 / 解构研究 / 射线引导" },
+  janna: { role: "远程辅助", summary: "范围控制 / 护盾强化 / 群体治疗" },
+  ahri: { role: "远程法师", summary: "占位技能组 / 机动输出" },
+  fizz: { role: "远程法师", summary: "占位技能组 / 快速行动" },
+  sona: { role: "远程辅助", summary: "占位技能组 / 自我恢复" },
+  xayah: { role: "远程射手", summary: "占位技能组 / 持续输出" },
+  ezreal: { role: "远程射手", summary: "占位技能组 / 灵活行动" },
+  rakan: { role: "近战辅助", summary: "占位技能组 / 快速支援" },
 };
 
 const els = {
@@ -177,6 +243,7 @@ const unitEls = new Map();
 const projectileEls = new Map();
 const tokenEls = new Map();
 let selectedHeroKeys = ["lux", "mf"];
+const selectedHeroSkinIndices = Object.fromEntries(HERO_ORDER.map((key) => [key, 0]));
 let state = createState([]);
 let zoneTooltipTimer = null;
 
@@ -193,6 +260,34 @@ function skill(key, name, kind, tags, description, cooldown, damage, range, extr
     range,
     tickCost: false,
     ...extra,
+  };
+}
+
+function placeholderHero(name, assets, attackType, attackRange, stats) {
+  const healDescription = "为自己恢复20点生命。";
+  return {
+    name,
+    asset: assets[0] || UNKNOWN_HERO_ASSET,
+    assets: assets.length ? assets : [UNKNOWN_HERO_ASSET],
+    hp: stats.hp,
+    actionSpeed: stats.actionSpeed,
+    attackType,
+    attackDamage: stats.attackDamage,
+    attackRange,
+    projectileSpeed: attackType === "ranged" ? 2 : 1,
+    moveRange: stats.moveRange,
+    moveMode: "自由移动",
+    passive: {
+      name: "占位",
+      description: "暂无效果。",
+    },
+    skills: {
+      q: skill("Q", "占位 Q", "placeholderHeal", "治疗 / 占位", healDescription, 3, 0, 0, { heal: 20 }),
+      w: skill("W", "占位 W", "placeholderHeal", "治疗 / 占位", healDescription, 3, 0, 0, { heal: 20 }),
+      e: skill("E", "占位 E", "placeholderHeal", "治疗 / 占位", healDescription, 3, 0, 0, { heal: 20 }),
+      r: skill("R", "占位 R", "placeholderAdvance", "行动 / 占位", "使自己的下一次行动提前50%。", 6, 0, 0, { advance: 0.5 }),
+      flash: flashSkill(),
+    },
   };
 }
 
@@ -272,23 +367,88 @@ function renderStartMenu() {
   els.heroPicker.innerHTML = "";
   HERO_ORDER.forEach((key) => {
     const hero = HEROES[key];
-    const profile = HERO_PROFILES[key] || { role: "英雄", summary: "战术单位" };
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `hero-card ${selectedHeroKeys.includes(key) ? "selected" : ""}`;
-    button.dataset.hero = key;
-    button.innerHTML = `
+    const profile = HERO_PROFILES[key] || { role: "战术英雄", summary: "战术单位" };
+    const selected = selectedHeroKeys.includes(key);
+    const assets = heroAssets(key);
+    const skinIndex = normalizedHeroSkinIndex(key);
+    const featureLines = profile.summary.split("/").map((item) => item.trim()).filter(Boolean);
+    const card = document.createElement("div");
+    card.className = `hero-card ${selected ? "selected" : ""}`;
+    card.dataset.hero = key;
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-pressed", String(selected));
+    card.innerHTML = `
       <span class="hero-card-pick">已选择</span>
-      <img src="${hero.asset}" alt="" />
-      <strong>${hero.name}</strong>
-      <span class="hero-card-type">${hero.attackType === "ranged" ? "远程攻击" : "近战攻击"} · ${profile.role}</span>
-      <span class="hero-card-summary">${profile.summary}</span>
+      <div class="hero-card-portrait">
+        <button class="skin-switch skin-prev" type="button" aria-label="上一款皮肤" ${assets.length <= 1 ? "disabled" : ""}>◀</button>
+        <img src="${assets[skinIndex]}" alt="" />
+        <button class="skin-switch skin-next" type="button" aria-label="下一款皮肤" ${assets.length <= 1 ? "disabled" : ""}>▶</button>
+      </div>
+      <div class="hero-card-footer">
+        <div class="hero-card-identity">
+          <strong>${hero.name}</strong>
+          <span class="hero-card-type">${profile.role}</span>
+        </div>
+        <div class="hero-card-summary">${featureLines.map((item) => `<span>${item}</span>`).join("")}</div>
+      </div>
     `;
-    button.addEventListener("click", () => toggleHeroSelection(key));
-    attachFloatingTooltip(button, heroTooltipContent(key));
-    els.heroPicker.append(button);
+    const image = card.querySelector(".hero-card-portrait img");
+    image.addEventListener("error", () => {
+      if (image.dataset.fallbackApplied) return;
+      image.dataset.fallbackApplied = "true";
+      image.src = UNKNOWN_HERO_ASSET;
+    });
+    card.querySelector(".skin-prev").addEventListener("click", (event) => cycleHeroSkin(key, -1, event));
+    card.querySelector(".skin-next").addEventListener("click", (event) => cycleHeroSkin(key, 1, event));
+    card.addEventListener("click", (event) => {
+      if (!event.target.closest(".skin-switch")) toggleHeroSelection(key);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.target.closest(".skin-switch")) return;
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggleHeroSelection(key);
+      }
+    });
+    attachFloatingTooltip(card, heroTooltipContent(key));
+    els.heroPicker.append(card);
   });
   syncHeroSelectionLimit();
+}
+
+function heroAssets(key) {
+  const assets = HEROES[key]?.assets || HERO_ASSETS[key] || [];
+  return assets.length ? assets : [UNKNOWN_HERO_ASSET];
+}
+
+function normalizedHeroSkinIndex(key) {
+  const assets = heroAssets(key);
+  const current = selectedHeroSkinIndices[key] || 0;
+  const normalized = ((current % assets.length) + assets.length) % assets.length;
+  selectedHeroSkinIndices[key] = normalized;
+  return normalized;
+}
+
+function selectedHeroAsset(key) {
+  const assets = heroAssets(key);
+  return assets[normalizedHeroSkinIndex(key)] || UNKNOWN_HERO_ASSET;
+}
+
+function randomHeroAsset(key) {
+  const assets = heroAssets(key);
+  return assets[Math.floor(Math.random() * assets.length)] || UNKNOWN_HERO_ASSET;
+}
+
+function cycleHeroSkin(key, direction, event) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (!selectedHeroKeys.includes(key)) return;
+  const assets = heroAssets(key);
+  if (assets.length <= 1) return;
+  selectedHeroSkinIndices[key] = (normalizedHeroSkinIndex(key) + direction + assets.length) % assets.length;
+  hideFloatingTooltip();
+  renderStartMenu();
 }
 
 function toggleHeroSelection(key) {
@@ -313,7 +473,9 @@ function syncHeroSelectionLimit() {
   selectedHeroKeys = selectedHeroKeys.slice(0, limit);
   els.startButton.disabled = selectedHeroKeys.length !== limit;
   [...els.heroPicker.children].forEach((button) => {
-    button.classList.toggle("selected", selectedHeroKeys.includes(button.dataset.hero));
+    const selected = selectedHeroKeys.includes(button.dataset.hero);
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
   });
 }
 
@@ -325,8 +487,8 @@ function startGameFromMenu() {
   const enemyPool = HERO_ORDER.filter((key) => !selectedHeroKeys.includes(key));
   const enemyKeys = pickRandom(enemyPool.length ? enemyPool : HERO_ORDER, enemyCount);
   const characters = [
-    ...selectedHeroKeys.map((key, index) => createCharacter(key, "player", index)),
-    ...enemyKeys.map((key, index) => createCharacter(key, "enemy", index)),
+    ...selectedHeroKeys.map((key, index) => createCharacter(key, "player", index, selectedHeroAsset(key))),
+    ...enemyKeys.map((key, index) => createCharacter(key, "enemy", index, randomHeroAsset(key))),
   ];
 
   state = createState(characters);
@@ -356,7 +518,7 @@ function showStartMenu() {
   els.targetHint.textContent = "请先在开始菜单选择阵容";
 }
 
-function createCharacter(heroKey, team, index) {
+function createCharacter(heroKey, team, index, selectedAsset = null) {
   const hero = HEROES[heroKey];
   const skills = {};
   Object.entries(hero.skills).forEach(([key, value]) => {
@@ -367,7 +529,7 @@ function createCharacter(heroKey, team, index) {
     heroKey,
     name: hero.name,
     team,
-    asset: hero.asset,
+    asset: selectedAsset || hero.asset || UNKNOWN_HERO_ASSET,
     hp: hero.hp,
     maxHp: hero.hp,
     actionSpeed: hero.actionSpeed,
@@ -539,7 +701,7 @@ function renderFighterList() {
     const statMini = document.createElement("div");
     statMini.setAttribute("class", "stat-mini");
     statMini.append(
-      statChip("攻", character.attackDamage),
+      statChip("攻", effectiveAttackDamage(character)),
       statChip("速", Math.round(effectiveActionSpeed(character))),
       statChip("距", character.attackRange),
       statChip("移", character.moveRange),
@@ -666,7 +828,8 @@ function renderActionWaiting(text) {
 
 function renderChannelPanel(actor, channel, disabled) {
   const skillName = channel.skillName || "引导技能";
-  addActionButton(`继续引导${skillName}`, `结算一次${skillName}的引导效果，并结束当前行动轮次。`, () => continueChannelAction(actor), disabled, "primary", { icon: "skill", cooldown: `${channel.remaining}次` });
+  const continueHandler = channel.kind === "velkozR" ? () => prepareVelkozChannelRay(actor) : () => continueChannelAction(actor);
+  addActionButton(`继续引导${skillName}`, `结算一次${skillName}的引导效果，并结束当前行动轮次。`, continueHandler, disabled, "primary", { icon: "skill", cooldown: `${channel.remaining}次` });
   addActionButton("结束引导", `立刻结束引导中：${skillName}，本轮次可继续选择常规行动。`, () => endChannelAction(actor), disabled, "warn", { icon: "skip" });
 }
 
@@ -675,11 +838,25 @@ function renderSkillMenu(actor, disabled) {
     const currentSkill = getEffectiveSkill(actor, key);
     if (!currentSkill) return;
     const luxField = actor.heroKey === "lux" && key === "e" ? getLuxField(actor) : null;
-    const label = luxField ? `${currentSkill.key} 引爆光辉领域` : key === "flash" ? "闪现" : `${currentSkill.key} ${currentSkill.name}`;
+    const jannaTornado = actor.heroKey === "janna" && key === "q" ? getJannaTornado(actor) : null;
+    const zoeStar = actor.heroKey === "zoe" && key === "q" ? activeZoeQStar(actor) : null;
+    const label = luxField ? `${currentSkill.key} 引爆光辉领域` : jannaTornado ? `${currentSkill.key} 释放飓风呼啸` : zoeStar ? `${currentSkill.key} 重新导引飞星` : key === "flash" ? "闪现" : `${currentSkill.key} ${currentSkill.name}`;
     const meta = skillButtonMeta(currentSkill);
     if (luxField) {
       meta.cooldownValue = luxField.remaining;
       meta.cooldownLabel = "领域剩余";
+      meta.cooldownState = "field";
+      meta.bottomRight = "";
+    }
+    if (jannaTornado) {
+      meta.cooldownValue = jannaTornado.charge || 0;
+      meta.cooldownLabel = "蓄力层数";
+      meta.cooldownState = "field";
+      meta.bottomRight = "";
+    }
+    if (zoeStar) {
+      meta.cooldownValue = Math.max(0, actor.temp.zoeQRecastUntil - state.battleTick);
+      meta.cooldownLabel = "重施窗口";
       meta.cooldownState = "field";
       meta.bottomRight = "";
     }
@@ -789,6 +966,11 @@ function buildAttackPreview(actor) {
 function buildSkillPreview(actor, skillKey) {
   const currentSkill = getEffectiveSkill(actor, skillKey);
   if (!actor || !currentSkill) return null;
+  const jannaTornado = actor.heroKey === "janna" && skillKey === "q" ? getJannaTornado(actor) : null;
+  if (jannaTornado) {
+    const cells = getZoneCells(jannaTornado);
+    return { rangeKeys: new Set(cells.map(coordKey)), selectableKeys: new Set(cells.map(coordKey)), effectKeys: new Set(cells.map(coordKey)), highlightClass: "skill" };
+  }
   const luxField = actor.heroKey === "lux" && skillKey === "e" ? getLuxField(actor) : null;
   if (luxField) {
     const cells = getZoneCells(luxField);
@@ -798,8 +980,13 @@ function buildSkillPreview(actor, skillKey) {
     const cells = getCellsInRange(actor.position, currentSkill.range).filter((cell) => hexDistance(actor.position, cell) > 0 && !getCharacterAt(cell));
     return { rangeKeys: new Set(cells.map(coordKey)), selectableKeys: new Set(cells.map(coordKey)), highlightClass: "move" };
   }
-  if (currentSkill.kind === "beam") {
+  if (currentSkill.kind === "beam" || currentSkill.kind === "velkozR") {
     return buildFreeRayPreview(actor, currentSkill);
+  }
+  if (currentSkill.kind === "jannaE") {
+    const cells = getCellsInRange(actor.position, currentSkill.range);
+    const targets = allAlive(actor.team).filter((target) => hexDistance(actor.position, target.position) <= currentSkill.range);
+    return { rangeKeys: new Set(cells.map(coordKey)), selectableKeys: new Set(targets.map((target) => coordKey(target.position))), highlightClass: "skill" };
   }
   if (isFixedDistanceDirectionSkill(currentSkill)) {
     return buildFixedLinePreview(actor, currentSkill);
@@ -813,7 +1000,7 @@ function buildSkillPreview(actor, skillKey) {
   if (currentSkill.kind === "windWall") {
     return buildDirectionPreview(actor, currentSkill);
   }
-  if (currentSkill.kind === "dash" || currentSkill.kind === "mfQ" || currentSkill.kind === "yasuoR") {
+  if (currentSkill.kind === "dash" || currentSkill.kind === "mfQ" || currentSkill.kind === "yasuoR" || currentSkill.kind === "jannaW") {
     const targets = targetableEnemiesForSkill(actor, currentSkill);
     const rangeCells = getCellsInRange(actor.position, currentSkill.range).filter((cell) => hexDistance(actor.position, cell) > 0);
     return { rangeKeys: new Set(rangeCells.map(coordKey)), selectableKeys: new Set(targets.map((target) => coordKey(target.position))), highlightClass: "skill" };
@@ -822,7 +1009,7 @@ function buildSkillPreview(actor, skillKey) {
     const cells = getCellsInRange(actor.position, currentSkill.range).filter((cell) => hexDistance(actor.position, cell) > 0);
     return { rangeKeys: new Set(cells.map(coordKey)), selectableKeys: new Set(cells.map(coordKey)), effectKeys: new Set(cells.map(coordKey)), highlightClass: "skill" };
   }
-  if (currentSkill.kind === "shield" || currentSkill.kind === "mfW" || currentSkill.kind === "placeholder" || currentSkill.kind === "zoeW") {
+  if (currentSkill.kind === "shield" || currentSkill.kind === "mfW" || currentSkill.kind === "placeholder" || currentSkill.kind === "placeholderHeal" || currentSkill.kind === "placeholderAdvance" || currentSkill.kind === "zoeW" || currentSkill.kind === "jannaR") {
     return { rangeKeys: new Set([coordKey(actor.position)]), selectableKeys: new Set([coordKey(actor.position)]), highlightClass: "skill" };
   }
   const cells = getCellsInRange(actor.position, currentSkill.range);
@@ -880,7 +1067,7 @@ function buildFreeRayPreview(actor, currentSkill, targetPoint = null) {
 }
 
 function isFixedDistanceDirectionSkill(currentSkill) {
-  return currentSkill?.kind === "direction" || currentSkill?.kind === "shieldLine";
+  return currentSkill?.kind === "direction" || currentSkill?.kind === "shieldLine" || currentSkill?.kind === "jannaQ" || currentSkill?.kind === "velkozW";
 }
 
 function buildFixedLinePreview(actor, currentSkill, targetPoint = null) {
@@ -900,7 +1087,7 @@ function buildFixedLinePreview(actor, currentSkill, targetPoint = null) {
 }
 
 function isLineTargetSkill(currentSkill) {
-  return currentSkill?.kind === "zoeQ" || currentSkill?.kind === "zoeE" || currentSkill?.kind === "yasuoQ" || currentSkill?.kind === "yasuoQ3" || currentSkill?.kind === "yasuoE";
+  return currentSkill?.kind === "zoeQ" || currentSkill?.kind === "zoeE" || currentSkill?.kind === "yasuoQ" || currentSkill?.kind === "yasuoQ3" || currentSkill?.kind === "yasuoE" || currentSkill?.kind === "velkozQ";
 }
 
 function buildLineTargetPreview(actor, currentSkill, targetCell = null) {
@@ -1096,12 +1283,12 @@ function parseSkillTags(tags) {
 
 function heroTooltipContent(heroKey) {
   const hero = HEROES[heroKey];
-  const profile = HERO_PROFILES[heroKey] || { role: "英雄", summary: "战术单位" };
+  const profile = HERO_PROFILES[heroKey] || { role: "战术英雄", summary: "战术单位" };
   const skills = skillEntries(hero.skills).map(([key, currentSkill]) => skillBlockData(key, currentSkill, { cooldownValue: currentSkill.cooldown, cooldownLabel: "冷却" }));
   return {
     eyebrow: "英雄档案",
     title: hero.name,
-    subtitle: `${hero.attackType === "ranged" ? "远程攻击" : "近战攻击"} · ${profile.role}`,
+    subtitle: profile.role,
     sections: [
       { title: "定位", text: profile.summary },
       { title: "基础属性", rows: [["生命", hero.hp], ["攻击", hero.attackDamage], ["攻击范围", hero.attackRange], ["行动速度", hero.actionSpeed], ["移动距离", hero.moveRange]] },
@@ -1126,7 +1313,7 @@ function characterDetailTooltip(character) {
     });
   const rows = [
     ["生命", `${Math.max(0, character.hp)} / ${character.maxHp}`],
-    ["攻击", `${character.attackType === "ranged" ? "远程" : "近战"} · ${character.attackDamage}`],
+    ["攻击", `${character.attackType === "ranged" ? "远程" : "近战"} · ${effectiveAttackDamage(character)}`],
     ["攻击范围", character.attackRange],
     ["行动速度", `${Math.round(effectiveActionSpeed(character))} / 基础 ${character.actionSpeed}`],
     ["行动条", `${Math.round(character.actionProgress)} / ${ACTION_BAR_LENGTH}`],
@@ -1367,10 +1554,11 @@ function basicAttackTooltipContent(actor) {
 }
 
 function expectedBasicDamage(actor) {
-  if (actor.heroKey === "yasuo") return `${actor.attackDamage}（50%概率 ${actor.attackDamage * 2}）`;
-  if (actor.heroKey === "mf") return `${actor.attackDamage}（新目标 +7）`;
-  if (actor.heroKey === "zoe" && actor.temp.sparkReady) return `${actor.attackDamage + 8}`;
-  return actor.attackDamage;
+  const damage = effectiveAttackDamage(actor);
+  if (actor.heroKey === "yasuo") return `${damage}（50%概率 ${damage * 2}）`;
+  if (actor.heroKey === "mf") return `${damage}（新目标 +7）`;
+  if (actor.heroKey === "zoe" && actor.temp.sparkReady) return `${damage + 8}`;
+  return damage;
 }
 
 function statusLabel(status) {
@@ -1384,7 +1572,9 @@ function statusLabel(status) {
   if (status.type === "zoeSpark") return "烟火四射";
   if (status.type === "mfTarget") return "厄运的眷顾";
   if (status.type === "yasuoWind") return `旋风烈斩 ${status.stacks || 1}层`;
-  if (status.type === "airborne") return `浮空 ${status.remaining}`;
+  if (status.type === "airborne") return `${status.label || "浮空"} ${status.remaining}`;
+  if (status.type === "velkozDeconstruction") return `解构 ${status.stacks || 1}层`;
+  if (status.type === "velkozResearched") return `研究 ${status.remaining}`;
   return `状态 ${status.remaining}`;
 }
 
@@ -1392,7 +1582,7 @@ function statusTooltip(status) {
   const duration = Number.isFinite(status.remaining) ? `剩余 ${status.remaining}个回合。` : "无持续时间，会在条件变化时移除。";
   if (status.type === "root") return `禁锢：不能移动或使用位移。${duration}`;
   if (status.type === "stun") return `晕眩：跳过行动，不能攻击、移动或施放技能。${duration}`;
-  if (status.type === "shield") return `护盾：吸收伤害。当前护盾值 ${status.amount}，${duration}`;
+  if (status.type === "shield") return `护盾：吸收伤害。当前护盾值 ${status.amount}${status.attackBonus ? `；持有时攻击力 +${status.attackBonus}` : ""}，${duration}`;
   if (status.type === "channel") return `引导中：${status.skillName || "技能"}。剩余 ${status.remaining} 次，可继续引导或结束。`;
   if (status.type === "illumination") return `光芒四射：拉克丝普通攻击或终极闪光会引爆，造成额外伤害。${duration}`;
   if (status.type === "drowsy") return `困倦：下次战斗回合结算后转为昏睡。${duration}`;
@@ -1400,7 +1590,9 @@ function statusTooltip(status) {
   if (status.type === "zoeSpark") return "烟火四射：佐伊下一次普通攻击造成额外8点伤害。";
   if (status.type === "mfTarget") return "厄运的眷顾：这是女枪的最新目标。女枪攻击不具有该状态的目标时会造成额外7点伤害，并将此状态转移给新目标。";
   if (status.type === "yasuoWind") return `旋风烈斩：当前 ${status.stacks || 1} 层。达到2层后，亚索的Q和E变为强化技能。`;
-  if (status.type === "airborne") return `浮空：行动条暂停，不能行动。${duration}`;
+  if (status.type === "airborne") return `${status.label || "浮空"}：行动条暂停，不能行动。${duration}`;
+  if (status.type === "velkozDeconstruction") return `解构：当前 ${status.stacks || 1} 层。达到3层时受到33点伤害并转化为【研究】。`;
+  if (status.type === "velkozResearched") return `研究：大眼对该目标造成的伤害提高50%，期间不会获得【解构】。${duration}`;
   return `${statusLabel(status)}。${duration}`;
 }
 
@@ -1420,6 +1612,7 @@ function statusTooltipContent(status, holder = null) {
   const rows = [["状态", statusLabel(status)], ["持续", duration]];
   if (status.amount) rows.push(["数值", status.amount]);
   if (status.stacks) rows.push(["层数", status.stacks]);
+  if (status.attackBonus) rows.push(["攻击力", `+${status.attackBonus}`]);
   const source = status.sourceId ? getCharacter(status.sourceId) : null;
   if (source && source.id !== holder?.id) rows.push(["来源", source.name]);
   return {
@@ -1480,6 +1673,8 @@ function zoneClass(zone) {
   const classes = [zone.team === "enemy" ? "enemy-zone" : "player-zone"];
   if (zone.effect === "luxField") classes.push("lux-zone");
   if (zone.effect === "bubbleTrap") classes.push("bubble-zone");
+  if (zone.effect === "jannaTornado" || zone.effect === "jannaMonsoon") classes.push("wind-zone");
+  if (zone.effect === "velkozRift" || zone.effect === "velkozDecompose" || zone.effect === "velkozRay") classes.push("void-zone");
   if (zone.channelOwnerId) classes.push("channel-zone");
   return classes.join(" ");
 }
@@ -1532,6 +1727,18 @@ function zoneTooltip(zone) {
   if (zone.detonateDamage > 0) parts.push(`再次施放可引爆：${zone.detonateDamage} 伤害`);
   if (zone.slow > 0) parts.push(`减速：${Math.round(zone.slow * 100)}%`);
   if (zone.effect === "bubbleTrap") parts.push("效果：敌人进入后施加困倦，随后转为昏睡");
+  if (zone.effect === "jannaTornado") {
+    const currentSkill = owner?.skills?.q;
+    const charge = zone.charge || 0;
+    const damage = currentSkill ? Math.round(currentSkill.damage * (1 + charge * (currentSkill.chargeDamage || 0.2))) : zone.damage;
+    const range = currentSkill ? currentSkill.range + charge * (currentSkill.chargeRange || 2) : "-";
+    const airborne = currentSkill ? (currentSkill.airborneDuration || 1) + charge : "-";
+    parts.push(`效果：龙卷风正在蓄力；当前 ${charge} 层，伤害 ${damage}，距离 ${range}，击飞 ${airborne} 个回合。敌方无法得知释放方向。`);
+  }
+  if (zone.effect === "jannaMonsoon") parts.push("效果：继续引导时治疗范围内友军。");
+  if (zone.effect === "velkozRift") parts.push("效果：下个回合再次造成伤害后消失。");
+  if (zone.effect === "velkozDecompose") parts.push("效果：下个回合造成伤害并施加【击飞】。");
+  if (zone.effect === "velkozRay") parts.push("效果：大眼当前引导射线的生效范围。");
   if (zone.channelOwnerId) parts.push("类型：引导型持续范围");
   return parts.join("\n");
 }
@@ -1681,7 +1888,7 @@ function unitMarkup(character) {
     .filter((status) => status.remaining > 0)
     .slice(0, 4)
     .map((status, index) => {
-      const label = status.type === "root" ? "禁" : status.type === "stun" ? "晕" : status.type === "sleep" ? "睡" : status.type === "illumination" ? "光" : status.type === "channel" ? "引" : status.type === "zoeSpark" ? "火" : status.type === "mfTarget" ? "厄" : status.type === "yasuoWind" ? "旋" : status.type === "airborne" ? "浮" : "盾";
+      const label = status.type === "root" ? "禁" : status.type === "stun" ? "晕" : status.type === "sleep" ? "睡" : status.type === "illumination" ? "光" : status.type === "channel" ? "引" : status.type === "zoeSpark" ? "火" : status.type === "mfTarget" ? "厄" : status.type === "yasuoWind" ? "旋" : status.type === "airborne" ? (status.label === "击飞" ? "击" : "浮") : status.type === "velkozDeconstruction" ? "解" : status.type === "velkozResearched" ? "研" : "盾";
       const x = -23 + index * 15;
       return `<g class="status-badge" transform="translate(${x} -35)"><circle r="7"></circle><text y="1">${label}</text></g>`;
     })
@@ -1800,6 +2007,10 @@ function handleCellClick(cell, event = null) {
     const target = getEnemyAt(cell, actor.team);
     if (target) void castTargetSkill(actor, selection.skillKey, target);
   }
+  if (selection.type === "allyTarget" && selection.selectableKeys.has(key)) {
+    const target = getCharacterAt(cell);
+    if (target?.team === actor.team) void castAllyTargetSkill(actor, selection.skillKey, target);
+  }
   if (selection.type === "lineTarget") {
     const targetCell = resolveNearestSelectionCell(selection, cell);
     if (targetCell) void castLineTargetSkill(actor, selection.skillKey, targetCell);
@@ -1811,6 +2022,10 @@ function handleCellClick(cell, event = null) {
   if (selection.type === "freeRay") {
     const point = event ? boardPointFromEvent(event) : hexToPixel(cell);
     void castFreeRaySkill(actor, selection.skillKey, point);
+  }
+  if (selection.type === "velkozChannelRay") {
+    const point = event ? boardPointFromEvent(event) : hexToPixel(cell);
+    if (point) void continueVelkozChannelRay(actor, point);
   }
   if (selection.type === "direction") {
     const targetCell = resolveNearestSelectionCell(selection, cell);
@@ -1889,6 +2104,10 @@ function handleBoardPointerClick(event) {
     if (point) void castFreeRaySkill(actor, state.selection.skillKey, point);
     return;
   }
+  if (state.selection.type === "velkozChannelRay") {
+    if (point) void continueVelkozChannelRay(actor, point);
+    return;
+  }
   if (state.selection.type === "fixedLine") {
     if (point) void castFixedLineSkill(actor, state.selection.skillKey, point);
     return;
@@ -1906,7 +2125,7 @@ function handleBoardPointerClick(event) {
 
 function updateSelectionPreview(cell = null, point = null) {
   const selection = state.selection;
-  if (!selection || !["target", "lineTarget", "fixedLine", "zone", "direction", "freeCone", "freeRay"].includes(selection.type)) return false;
+  if (!selection || !["target", "lineTarget", "fixedLine", "zone", "direction", "freeCone", "freeRay", "velkozChannelRay"].includes(selection.type)) return false;
   const actor = getCharacter(selection.actorId);
   const currentSkill = getEffectiveSkill(actor, selection.skillKey);
   if (!actor || !currentSkill) return false;
@@ -1933,6 +2152,18 @@ function updateSelectionPreview(cell = null, point = null) {
     selection.pathKeys = new Set(pathCells.map(coordKey));
     selection.effectKeys = new Set();
     els.targetHint.textContent = selection.hoverText || "选择方向";
+    renderHighlights();
+    return true;
+  }
+  if (selection.type === "velkozChannelRay") {
+    const channel = getChannelStatus(actor);
+    if (!channel || channel.kind !== "velkozR") return false;
+    const targetPoint = resolveConstrainedRayTargetPoint(actor, currentSkill, point || (cell ? hexToPixel(cell) : null), channel.lastAngle, currentSkill.turnAngle || 30);
+    const pathCells = rayCellsFromPoint(actor.position, targetPoint, currentSkill.maxDistance || 6);
+    selection.targetPoint = targetPoint;
+    selection.pathKeys = new Set(pathCells.map(coordKey));
+    selection.effectKeys = new Set();
+    els.targetHint.textContent = selection.hoverText;
     renderHighlights();
     return true;
   }
@@ -2035,19 +2266,27 @@ function prepareAttack(actor) {
 function prepareSkill(actor, key) {
   const currentSkill = getEffectiveSkill(actor, key);
   if (!currentSkill) return;
+  if (actor.heroKey === "janna" && key === "q" && getJannaTornado(actor)) {
+    void recastJannaTornado(actor, key);
+    return;
+  }
   if (actor.heroKey === "lux" && key === "e" && getLuxField(actor)) {
     void detonateLuxFieldAction(actor, key);
     return;
   }
-  if (currentSkill.kind === "shield" || currentSkill.kind === "mfW" || currentSkill.kind === "spin" || currentSkill.kind === "placeholder" || currentSkill.kind === "zoeW" || currentSkill.kind === "yasuoE3") {
+  if (currentSkill.kind === "shield" || currentSkill.kind === "mfW" || currentSkill.kind === "spin" || currentSkill.kind === "placeholder" || currentSkill.kind === "placeholderHeal" || currentSkill.kind === "placeholderAdvance" || currentSkill.kind === "zoeW" || currentSkill.kind === "yasuoE3" || currentSkill.kind === "jannaR") {
     void castSelfSkill(actor, key);
+    return;
+  }
+  if (currentSkill.kind === "jannaE") {
+    prepareAllyTargetSkill(actor, key);
     return;
   }
   if (currentSkill.kind === "flash" || currentSkill.kind === "zoeR") {
     prepareFlash(actor, key);
     return;
   }
-  if (currentSkill.kind === "beam") {
+  if (currentSkill.kind === "beam" || currentSkill.kind === "velkozR") {
     prepareFreeRaySkill(actor, key);
     return;
   }
@@ -2067,7 +2306,7 @@ function prepareSkill(actor, key) {
     prepareDirectionSkill(actor, key);
     return;
   }
-  if (currentSkill.kind === "dash" || currentSkill.kind === "mfQ" || currentSkill.kind === "yasuoR") {
+  if (currentSkill.kind === "dash" || currentSkill.kind === "mfQ" || currentSkill.kind === "yasuoR" || currentSkill.kind === "jannaW") {
     prepareTargetSkill(actor, key);
     return;
   }
@@ -2129,6 +2368,16 @@ function prepareTargetSkill(actor, skillKey) {
   renderAll();
 }
 
+function prepareAllyTargetSkill(actor, skillKey) {
+  const currentSkill = getEffectiveSkill(actor, skillKey);
+  const cells = getCellsInRange(actor.position, currentSkill.range);
+  const targets = allAlive(actor.team).filter((target) => hexDistance(actor.position, target.position) <= currentSkill.range);
+  state.hoverPreview = null;
+  state.selection = { type: "allyTarget", actorId: actor.id, skillKey, menu: "skills", rangeKeys: new Set(cells.map(coordKey)), selectableKeys: new Set(targets.map((target) => coordKey(target.position))), highlightClass: "skill", hoverText: "选择友军目标" };
+  els.targetHint.textContent = targets.length ? `选择${currentSkill.name}目标` : "没有可选友军";
+  renderAll();
+}
+
 function preparePointSkill(actor, skillKey) {
   const currentSkill = getEffectiveSkill(actor, skillKey);
   const cells = getCellsInRange(actor.position, currentSkill.range);
@@ -2180,7 +2429,8 @@ async function continueChannelAction(actor) {
     tickCost: false,
     unitClass: "casting",
     effect: async () => {
-      await applyZoneEffect(zone, true);
+      if (zone.effect === "jannaMonsoon") await applyJannaMonsoon(zone);
+      else await applyZoneEffect(zone, true);
       addFloating(actor.position, "继续引导", "shield");
       await sleep(220);
     },
@@ -2232,7 +2482,7 @@ async function basicAttack(actor, target) {
     unitClass: "attacking",
     effect: async () => {
       actor.lastAttackTick = state.battleTick;
-      let damage = actor.attackDamage;
+      let damage = effectiveAttackDamage(actor);
       if (actor.heroKey === "yasuo" && Math.random() < 0.5) {
         damage *= 2;
         addFloating(actor.position, "双倍", "control");
@@ -2299,6 +2549,20 @@ async function castSelfSkill(actor, skillKey) {
         });
       } else if (currentSkill.kind === "yasuoE3") {
         castYasuoWhirlwindStrike(actor, currentSkill);
+      } else if (currentSkill.kind === "placeholderHeal") {
+        const healed = Math.min(currentSkill.heal || 20, actor.maxHp - actor.hp);
+        actor.hp += healed;
+        if (healed > 0) {
+          recordHealLog(actor, actor, healed, currentSkill.name);
+          addFloating(actor.position, `+${healed}`, "heal");
+        } else {
+          addFloating(actor.position, "生命已满", "control");
+        }
+      } else if (currentSkill.kind === "placeholderAdvance") {
+        actor.temp.nextActionAdvance = Math.max(actor.temp.nextActionAdvance || 0, currentSkill.advance || 0.5);
+        addFloating(actor.position, "下次行动提前", "shield");
+      } else if (currentSkill.kind === "jannaR") {
+        await startJannaMonsoon(actor, currentSkill);
       } else if (currentSkill.kind === "zoeW") {
         if (actor.temp.spellShard === "flash") {
           actor.temp.spellShard = null;
@@ -2318,6 +2582,22 @@ async function castSelfSkill(actor, skillKey) {
 
 async function castTargetSkill(actor, skillKey, target) {
   const currentSkill = getEffectiveSkill(actor, skillKey);
+  if (currentSkill.kind === "jannaW") {
+    await performAction(actor, {
+      name: currentSkill.name,
+      tickCost: false,
+      unitClass: "casting",
+      effect: async () => {
+        setCooldown(actor, skillKey);
+        markSpellCast(actor);
+        const damage = Math.max(1, Math.round(effectiveActionSpeed(actor) * (currentSkill.speedRatio || 0.1)));
+        const projectile = createProjectile({ name: currentSkill.name, type: "homing", actor, targetId: target.id, speed: currentSkill.projectileSpeed || 3, maxDistance: currentSkill.range + 6, damage, effect: "jannaW" });
+        state.projectiles.push(projectile);
+        await advanceProjectileToEnd(projectile);
+      },
+    });
+    return;
+  }
   if (currentSkill.kind === "dash") {
     const landing = chooseDashLanding(actor, target);
     if (!landing) return;
@@ -2377,13 +2657,84 @@ async function castTargetSkill(actor, skillKey, target) {
   }
 }
 
+async function castAllyTargetSkill(actor, skillKey, target) {
+  const currentSkill = getEffectiveSkill(actor, skillKey);
+  if (!currentSkill || target.team !== actor.team) return;
+  await performAction(actor, {
+    name: currentSkill.name,
+    tickCost: false,
+    unitClass: "casting",
+    effect: async () => {
+      setCooldown(actor, skillKey);
+      markSpellCast(actor);
+      if (currentSkill.kind === "jannaE") {
+        applyShield(target, currentSkill.shield || 20, currentSkill.duration || 3, { sourceId: actor.id, attackBonus: currentSkill.attackBonus || 10, skillName: currentSkill.name });
+        addFloating(target.position, `护盾 ${currentSkill.shield || 20}`, "shield");
+      }
+      await sleep(240);
+    },
+  });
+}
+
 async function castLineTargetSkill(actor, skillKey, targetCell) {
   const currentSkill = getEffectiveSkill(actor, skillKey);
+  if (currentSkill.kind === "velkozQ") {
+    await castVelkozPlasma(actor, skillKey, targetCell);
+    return;
+  }
   if (currentSkill.kind === "zoeQ" || currentSkill.kind === "zoeE") {
     await castPointSkill(actor, skillKey, targetCell);
     return;
   }
   await castDirectionSkill(actor, skillKey, targetCell);
+}
+
+async function castVelkozPlasma(actor, skillKey, targetCell) {
+  const currentSkill = actor.skills[skillKey];
+  await performAction(actor, {
+    name: currentSkill.name,
+    tickCost: false,
+    unitClass: "casting",
+    effect: async () => {
+      setCooldown(actor, skillKey);
+      const projectile = createProjectile({ name: currentSkill.name, type: "linear", actor, targetCell, speed: currentSkill.projectileSpeed || 3, maxDistance: currentSkill.range, damage: currentSkill.damage, maxHits: 1, canBeBlocked: true, effect: "velkozQ" });
+      projectile.splitRange = currentSkill.splitRange || 4;
+      projectile.splitTriggered = false;
+      state.projectiles.push(projectile);
+      await advanceProjectileToEnd(projectile);
+      if (!projectile.splitTriggered && !projectile.blocked && !state.gameOver) await splitVelkozPlasma(actor, projectile, projectile.pos);
+      await sleep(200);
+    },
+  });
+}
+
+async function splitVelkozPlasma(actor, projectile, origin) {
+  if (!actor?.isAlive || !projectile || projectile.splitTriggered || !origin) return;
+  projectile.splitTriggered = true;
+  const startPoint = hexToPixel(projectile.pathStart || actor.position);
+  const endPoint = projectile.pathTargetPoint || hexToPixel(projectile.pathTarget || projectile.targetCell || origin);
+  const dx = endPoint.x - startPoint.x;
+  const dy = endPoint.y - startPoint.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const normal = { x: -dy / length, y: dx / length };
+  const splitRange = projectile.splitRange || 4;
+  for (const sign of [-1, 1]) {
+    const originPoint = hexToPixel(origin);
+    const targetPoint = {
+      x: originPoint.x + normal.x * sign * hexRangePixelDistance(splitRange),
+      y: originPoint.y + normal.y * sign * hexRangePixelDistance(splitRange),
+    };
+    const line = lineFromOriginToDirection(origin, targetPoint, splitRange);
+    if (!line.pathCells.length) continue;
+    const fragment = createProjectile({ name: `${projectile.name}·分裂`, type: "linear", actor, startPos: origin, targetCell: line.targetCell, speed: projectile.speed || 3, maxDistance: splitRange, damage: projectile.damage, maxHits: 1, canBeBlocked: true, effect: "velkozQSplit" });
+    fragment.path = line.pathCells.map(cloneCoord);
+    fragment.pathIndex = -1;
+    fragment.pathStart = cloneCoord(origin);
+    fragment.pathTarget = line.targetCell ? cloneCoord(line.targetCell) : null;
+    fragment.pathTargetPoint = { ...line.targetPoint };
+    state.projectiles.push(fragment);
+    await advanceProjectileToEnd(fragment);
+  }
 }
 
 async function castFreeRaySkill(actor, skillKey, targetPoint) {
@@ -2396,7 +2747,8 @@ async function castFreeRaySkill(actor, skillKey, targetPoint) {
     effect: async () => {
       setCooldown(actor, skillKey);
       markSpellCast(actor);
-      castBeam(actor, currentSkill, resolvedPoint);
+      if (currentSkill.kind === "velkozR") await startVelkozRay(actor, currentSkill, resolvedPoint);
+      else castBeam(actor, currentSkill, resolvedPoint);
       await sleep(240);
     },
   });
@@ -2431,9 +2783,13 @@ async function castFixedLineSkill(actor, skillKey, targetPoint) {
     tickCost: false,
     unitClass: "casting",
     effect: async () => {
-      setCooldown(actor, skillKey);
+      if (currentSkill.kind !== "jannaQ") setCooldown(actor, skillKey);
       markSpellCast(actor);
-      if (currentSkill.kind === "shieldLine") {
+      if (currentSkill.kind === "jannaQ") {
+        startJannaTornado(actor, currentSkill, line.targetPoint);
+      } else if (currentSkill.kind === "velkozW") {
+        await castVelkozRift(actor, currentSkill, line);
+      } else if (currentSkill.kind === "shieldLine") {
         await castShieldLine(actor, currentSkill, line);
       } else {
         const projectile = createProjectile({ name: currentSkill.name, type: "linear", actor, targetCell: line.targetCell, speed: currentSkill.projectileSpeed, maxDistance: currentSkill.maxDistance, damage: currentSkill.damage, rootDuration: currentSkill.rootDuration, maxHits: currentSkill.maxHits || 1, canBeBlocked: true, effect: actor.heroKey === "lux" ? "luxSkill" : null });
@@ -2600,6 +2956,10 @@ async function castPointSkill(actor, skillKey, center) {
         const projectile = createProjectile({ name: currentSkill.name, type: "bubble", actor, targetCell: center, speed: currentSkill.projectileSpeed, maxDistance: actor.attackRange + 4, damage: 0, effect: "bubble", trapDuration: currentSkill.trapDuration });
         state.projectiles.push(projectile);
         await advanceProjectileToEnd(projectile);
+      } else if (currentSkill.kind === "velkozE") {
+        const zone = createZone(actor, currentSkill, center, { effect: "velkozDecompose", remaining: currentSkill.delay || 1, airborneDuration: currentSkill.airborneDuration || 1 });
+        state.zones.push(zone);
+        addFloating(center, "分解", "control");
       }
       await sleep(240);
     },
@@ -2761,6 +3121,245 @@ function castBeam(actor, currentSkill, targetPoint) {
   if (!hit) addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}未命中目标。`);
 }
 
+async function startVelkozRay(actor, currentSkill, targetPoint) {
+  const resolvedPoint = resolveRayTargetPoint(actor, currentSkill, targetPoint);
+  const cells = rayCellsFromPoint(actor.position, resolvedPoint, currentSkill.maxDistance || 6);
+  const zone = createZone(actor, currentSkill, actor.position, {
+    effect: "velkozRay",
+    cells,
+    remaining: currentSkill.duration || 2,
+    channelOwnerId: actor.id,
+    channelSkillName: currentSkill.name,
+  });
+  state.zones.push(zone);
+  const angle = angleBetweenPointsRadians(hexToPixel(actor.position), resolvedPoint);
+  applyStatus(actor, "channel", currentSkill.duration || 2, { kind: "velkozR", skillName: currentSkill.name, zoneId: zone.id, lastAngle: angle, skillKey: "r" });
+  await applyVelkozRay(actor, currentSkill, resolvedPoint, false);
+}
+
+async function applyVelkozRay(actor, currentSkill, targetPoint, appliesResearch) {
+  const pathCells = rayCellsFromPoint(actor.position, targetPoint, currentSkill.maxDistance || 6);
+  const targets = sortTargetsByDistanceClockwise(actor, allAlive(oppositeTeam(actor.team)).filter((target) => pathCells.some((cell) => coordsEqual(cell, target.position))));
+  targets.forEach((target) => {
+    dealDamage(actor, target, currentSkill.damage, currentSkill.name, { skillDamage: true, velkozPassive: !appliesResearch });
+    if (appliesResearch && target.isAlive) {
+      removeStatus(target, "velkozDeconstruction");
+      applyStatus(target, "velkozResearched", 2, { sourceId: actor.id });
+      addFloating(target.position, "研究", "control");
+    }
+    addImpact(target.position);
+  });
+  if (!targets.length) addLog(`战斗回合 ${state.battleTick}：${currentSkill.name}未命中目标。`);
+  if (targets.length) await sleep(170);
+  return pathCells;
+}
+
+function prepareVelkozChannelRay(actor) {
+  const channel = getChannelStatus(actor);
+  const currentSkill = actor.skills[channel?.skillKey || "r"];
+  if (!channel || channel.kind !== "velkozR" || !currentSkill) return;
+  const targetPoint = pointFromAngle(actor.position, channel.lastAngle, currentSkill.maxDistance || 6);
+  const pathCells = rayCellsFromPoint(actor.position, targetPoint, currentSkill.maxDistance || 6);
+  state.hoverPreview = null;
+  state.selection = {
+    type: "velkozChannelRay",
+    actorId: actor.id,
+    skillKey: channel.skillKey || "r",
+    targetPoint,
+    pathKeys: new Set(pathCells.map(coordKey)),
+    rangeKeys: new Set(getCellsInRange(actor.position, currentSkill.maxDistance || 6).filter((cell) => hexDistance(actor.position, cell) > 0).map(coordKey)),
+    selectableKeys: new Set(getCellsInRange(actor.position, currentSkill.maxDistance || 6).filter((cell) => hexDistance(actor.position, cell) > 0).map(coordKey)),
+    highlightClass: "skill",
+    hoverText: "选择射线方向（最多偏转30度）",
+  };
+  els.targetHint.textContent = state.selection.hoverText;
+  renderAll();
+}
+
+async function continueVelkozChannelRay(actor, targetPoint) {
+  const channel = getChannelStatus(actor);
+  const currentSkill = actor.skills[channel?.skillKey || "r"];
+  const zone = findChannelZone(actor, channel);
+  if (!channel || channel.kind !== "velkozR" || !currentSkill || !zone) return;
+  const resolvedPoint = resolveConstrainedRayTargetPoint(actor, currentSkill, targetPoint, channel.lastAngle, currentSkill.turnAngle || 30);
+  await performAction(actor, {
+    name: `继续引导${currentSkill.name}`,
+    tickCost: false,
+    unitClass: "casting",
+    effect: async () => {
+      channel.lastAngle = angleBetweenPointsRadians(hexToPixel(actor.position), resolvedPoint);
+      zone.cells = await applyVelkozRay(actor, currentSkill, resolvedPoint, true);
+      addFloating(actor.position, "继续引导", "shield");
+      await sleep(180);
+    },
+  });
+}
+
+function resolveConstrainedRayTargetPoint(actor, currentSkill, targetPoint, baseAngle, maxDeltaDegrees) {
+  const start = hexToPixel(actor.position);
+  const fallback = pointFromAngle(actor.position, baseAngle, currentSkill.maxDistance || 6);
+  const raw = targetPoint || fallback;
+  const rawAngle = angleBetweenPointsRadians(start, raw);
+  const maxDelta = (maxDeltaDegrees * Math.PI) / 180;
+  const delta = clamp(normalizeAngleRadians(rawAngle - baseAngle), -maxDelta, maxDelta);
+  return pointFromAngle(actor.position, baseAngle + delta, currentSkill.maxDistance || 6);
+}
+
+function pointFromAngle(origin, angle, range) {
+  const start = hexToPixel(origin);
+  const length = hexRangePixelDistance(range);
+  return { x: start.x + Math.cos(angle) * length, y: start.y + Math.sin(angle) * length };
+}
+
+function angleBetweenPointsRadians(from, to) {
+  return Math.atan2(to.y - from.y, to.x - from.x);
+}
+
+function normalizeAngleRadians(angle) {
+  let normalized = angle;
+  while (normalized > Math.PI) normalized -= Math.PI * 2;
+  while (normalized < -Math.PI) normalized += Math.PI * 2;
+  return normalized;
+}
+
+function startJannaTornado(actor, currentSkill, targetPoint) {
+  const zone = createZone(actor, currentSkill, actor.position, {
+    effect: "jannaTornado",
+    cells: [cloneCoord(actor.position)],
+    remaining: Infinity,
+    charge: 0,
+    directionPoint: { ...targetPoint },
+    cooldownSkillKey: "q",
+  });
+  state.zones.push(zone);
+  addFloating(actor.position, "龙卷风蓄力", "control");
+}
+
+async function recastJannaTornado(actor, skillKey = "q") {
+  const currentSkill = actor.skills[skillKey];
+  const zone = getJannaTornado(actor);
+  if (!currentSkill || !zone) return;
+  await performAction(actor, {
+    name: `释放${currentSkill.name}`,
+    tickCost: false,
+    unitClass: "casting",
+    effect: async () => {
+      setCooldown(actor, skillKey);
+      zone.cooldownStarted = true;
+      zone.removed = true;
+      const charge = Math.min(currentSkill.chargeLimit || 3, zone.charge || 0);
+      const range = currentSkill.range + charge * (currentSkill.chargeRange || 2);
+      const damage = Math.round(currentSkill.damage * (1 + charge * (currentSkill.chargeDamage || 0.2)));
+      const airborneDuration = (currentSkill.airborneDuration || 1) + charge;
+      const line = lineFromOriginToDirection(zone.center, zone.directionPoint, range);
+      if (line.pathCells.length) {
+        const projectile = createProjectile({ name: currentSkill.name, type: "linear", actor, startPos: zone.center, targetCell: line.targetCell, speed: 2, maxDistance: range, damage, maxHits: 99, canBeBlocked: true, effect: "jannaTornado" });
+        projectile.airborneDuration = airborneDuration;
+        projectile.path = line.pathCells.map(cloneCoord);
+        projectile.pathIndex = -1;
+        projectile.pathStart = cloneCoord(zone.center);
+        projectile.pathTarget = line.targetCell ? cloneCoord(line.targetCell) : null;
+        projectile.pathTargetPoint = { ...line.targetPoint };
+        state.projectiles.push(projectile);
+        const originTarget = projectileHitTarget(projectile);
+        if (originTarget) await resolveProjectileHit(projectile, originTarget);
+        await advanceProjectileToEnd(projectile);
+      }
+      cleanupEntities();
+      await sleep(220);
+    },
+  });
+}
+
+function chargeJannaTornadoes() {
+  state.zones.filter((zone) => !zone.removed && zone.effect === "jannaTornado").forEach((zone) => {
+    const owner = getCharacter(zone.ownerId);
+    const currentSkill = owner?.skills?.q;
+    if (!owner?.isAlive || !currentSkill) {
+      zone.removed = true;
+      return;
+    }
+    const previous = zone.charge || 0;
+    zone.charge = Math.min(currentSkill.chargeLimit || 3, previous + 1);
+    if (zone.charge > previous) addFloating(zone.center, `蓄力 ${zone.charge}`, "control");
+  });
+}
+
+function lineFromOriginToDirection(origin, targetPoint, maxDistance) {
+  const start = hexToPixel(origin);
+  const end = resolveRayTargetPoint({ position: origin }, { maxDistance }, targetPoint);
+  let pathCells = linePathFromPixels(origin, start, end, maxDistance);
+  const targetCell = pathCells[pathCells.length - 1] || nearestCellToPointInRange(origin, end, maxDistance);
+  if (!pathCells.length && targetCell) pathCells = [cloneCoord(targetCell)];
+  return { targetPoint: end, targetCell, pathCells };
+}
+
+async function castVelkozRift(actor, currentSkill, line) {
+  const zone = createZone(actor, currentSkill, actor.position, {
+    effect: "velkozRift",
+    cells: line.pathCells.map(cloneCoord),
+    remaining: currentSkill.duration || 1,
+  });
+  state.zones.push(zone);
+  await applyZoneEffect(zone, true);
+}
+
+async function startJannaMonsoon(actor, currentSkill) {
+  const cells = getCellsInRange(actor.position, currentSkill.areaRadius || 3);
+  const zone = createZone(actor, currentSkill, actor.position, {
+    effect: "jannaMonsoon",
+    cells,
+    remaining: currentSkill.duration || 2,
+    channelOwnerId: actor.id,
+    channelSkillName: currentSkill.name,
+    heal: currentSkill.heal || 10,
+  });
+  state.zones.push(zone);
+  applyStatus(actor, "channel", currentSkill.duration || 2, { kind: "jannaR", skillName: currentSkill.name, zoneId: zone.id });
+  pushEnemiesOutsideZone(actor, currentSkill.areaRadius || 3);
+  await applyJannaMonsoon(zone);
+}
+
+function pushEnemiesOutsideZone(actor, radius) {
+  const centerPoint = hexToPixel(actor.position);
+  const targets = sortTargetsByDistanceClockwise(actor, allAlive(oppositeTeam(actor.team)).filter((target) => hexDistance(actor.position, target.position) <= radius));
+  targets.forEach((target) => {
+    const targetPoint = hexToPixel(target.position);
+    const dx = targetPoint.x - centerPoint.x;
+    const dy = targetPoint.y - centerPoint.y;
+    const length = Math.hypot(dx, dy) || 1;
+    const desired = {
+      x: centerPoint.x + (dx / length) * hexRangePixelDistance(radius + 1),
+      y: centerPoint.y + (dy / length) * hexRangePixelDistance(radius + 1),
+    };
+    const destination = state.cells
+      .filter((cell) => hexDistance(actor.position, cell) > radius && !getCharacterAt(cell))
+      .sort((a, b) => distance(hexToPixel(a), desired) - distance(hexToPixel(b), desired) || hexDistance(target.position, a) - hexDistance(target.position, b))[0];
+    if (!destination) return;
+    target.position = cloneCoord(destination);
+    addFloating(target.position, "击退", "control");
+  });
+  renderUnits();
+}
+
+async function applyJannaMonsoon(zone) {
+  const owner = getCharacter(zone.ownerId);
+  if (!owner?.isAlive) return;
+  const targets = sortTargetsByDistanceClockwise(owner, allAlive(owner.team).filter((target) => getZoneCells(zone).some((cell) => coordsEqual(cell, target.position))));
+  targets.forEach((target) => healCharacter(owner, target, zone.heal || 10, zone.name));
+  if (targets.length) await sleep(160);
+}
+
+function healCharacter(source, target, amount, reason) {
+  if (!target?.isAlive || amount <= 0) return 0;
+  const healed = Math.min(amount, target.maxHp - target.hp);
+  if (healed <= 0) return 0;
+  target.hp += healed;
+  recordHealLog(source, target, healed, reason);
+  addFloating(target.position, `+${healed}`, "heal");
+  return healed;
+}
+
 async function castZoeQ(actor, currentSkill, center) {
   const existing = activeZoeQStar(actor);
   if (existing && actor.temp.zoeQRecastUntil >= state.battleTick) {
@@ -2824,7 +3423,13 @@ async function completeAction(actor) {
     renderAll();
     return;
   }
-  if (state.currentActorId === actor.id) actor.actionProgress = 0;
+  if (state.currentActorId === actor.id) {
+    actor.actionProgress = 0;
+    if (actor.temp.nextActionAdvance) {
+      actor.actionProgress = ACTION_BAR_LENGTH * clamp(actor.temp.nextActionAdvance, 0, 1);
+      actor.temp.nextActionAdvance = 0;
+    }
+  }
   handleReturnPortal(actor);
   cleanupEntities();
   checkGameOver();
@@ -2840,6 +3445,7 @@ async function advanceBattlefieldTime(reason) {
   state.isBattlefieldSettling = true;
   addLog(`战斗回合 ${state.battleTick}：${reason}。`);
   spawnPeriodicShard();
+  chargeJannaTornadoes();
   await resolveZones();
   tickDurations();
   cleanupEntities();
@@ -2854,7 +3460,7 @@ async function resolveZones() {
   const zones = [...state.zones].sort((a, b) => a.createdOrder - b.createdOrder);
   for (const zone of zones) {
     if (state.gameOver || zone.removed) continue;
-    if (zone.channelOwnerId) continue;
+    if (zone.channelOwnerId || zone.effect === "jannaTornado") continue;
     await applyZoneEffect(zone, false);
     zone.remaining -= 1;
     if (zone.remaining <= 0) {
@@ -2879,6 +3485,21 @@ async function applyZoneEffect(zone, immediate) {
       addFloating(target.position, "困倦", "control");
       recordEffectTargetLog(owner, target, zone.name);
     }
+    return;
+  }
+  if (zone.effect === "velkozDecompose") {
+    const owner = getCharacter(zone.ownerId);
+    const affected = sortTargetsByDistanceClockwise(owner, allAlive(oppositeTeam(zone.team)).filter((character) => getZoneCells(zone).some((cell) => coordsEqual(cell, character.position))));
+    const externalLog = !state.pendingLog && owner && affected.length;
+    if (externalLog) beginActionLog(owner, { name: zone.name, logType: "skill" });
+    affected.forEach((target) => {
+      dealDamage(owner, target, zone.damage, zone.name, { skillDamage: true });
+      if (target.isAlive) applyStatus(target, "airborne", zone.airborneDuration || 1, { sourceId: owner?.id, label: "击飞" });
+      addImpact(target.position);
+      addFloating(target.position, "击飞", "control");
+    });
+    if (externalLog) flushActionLog(owner, { name: zone.name });
+    if (affected.length) await sleep(150);
     return;
   }
   const owner = getCharacter(zone.ownerId);
@@ -2924,6 +3545,7 @@ async function advanceProjectile(projectile, steps, source) {
     }
     if (projectile.canBeBlocked && isBlockedByWindWall(projectile, projectile.pos, next)) {
       projectile.removed = true;
+      projectile.blocked = true;
       addScreenImpact(midpoint(hexToPixel(projectile.pos), hexToPixel(next)));
       addLog(`战斗回合 ${state.battleTick}：${projectile.name}被风墙阻挡并消散。`);
       await sleep(120);
@@ -3010,13 +3632,19 @@ async function resolveProjectileHit(projectile, target) {
   const owner = getCharacter(projectile.ownerId);
   let damage = projectile.damage;
   if (projectile.effect === "zoeQ") damage = Math.round(damage * (1 + projectile.traveled * (projectile.damagePerCell || 0.1)));
-  dealDamage(owner, target, damage, projectile.name, { skillDamage: projectile.effect === "luxSkill" || projectile.effect === "zoeQ" || projectile.effect === "mfQ" || projectile.effect === "mfQBounce" });
+  const skillDamage = ["luxSkill", "zoeQ", "mfQ", "mfQBounce", "jannaW", "jannaTornado", "velkozQ", "velkozQSplit"].includes(projectile.effect);
+  dealDamage(owner, target, damage, projectile.name, { skillDamage });
   addImpact(target.position);
   if (projectile.effect === "zoeQ") splashZoeQ(owner, target, damage);
   if (projectile.rootDuration && target.isAlive) {
     applyStatus(target, "root", projectile.rootDuration, { sourceId: owner?.id });
     addFloating(target.position, "禁锢", "control");
   }
+  if (projectile.effect === "jannaTornado" && target.isAlive) {
+    applyStatus(target, "airborne", projectile.airborneDuration || 1, { sourceId: owner?.id, label: "击飞" });
+    addFloating(target.position, "击飞", "control");
+  }
+  if (projectile.effect === "velkozQ") await splitVelkozPlasma(owner, projectile, target.position);
   if (projectile.effect === "mfQ") await bounceMissFortuneQ(owner, target, projectile);
 }
 
@@ -3174,7 +3802,9 @@ async function skipStunnedTurn(actor) {
 
 async function runEnemyTurn(actor) {
   if (state.gameOver || !actor.isAlive) return;
-  if (getChannelStatus(actor)) return continueChannelAction(actor);
+  const channel = getChannelStatus(actor);
+  if (channel?.kind === "velkozR") return continueVelkozChannelRay(actor, pointFromAngle(actor.position, channel.lastAngle, actor.skills.r.maxDistance || 6));
+  if (channel) return continueChannelAction(actor);
   const target = nearestEnemy(actor);
   if (!target) return;
   const distance = hexDistance(actor.position, target.position);
@@ -3182,9 +3812,13 @@ async function runEnemyTurn(actor) {
     const cell = chooseFlashAway(actor, target);
     if (cell) return flashAction(actor, cell);
   }
+  if (actor.heroKey === "janna" && getJannaTornado(actor) && skillUsable(actor, "q")) return recastJannaTornado(actor, "q");
   if (distance <= actor.attackRange && canAttack(actor)) return basicAttack(actor, target);
   const qSkill = getEffectiveSkill(actor, "q");
   if (qSkill && skillUsable(actor, "q")) {
+    if (qSkill.kind === "jannaQ") return castFixedLineSkill(actor, "q", hexToPixel(target.position));
+    if (qSkill.kind === "velkozQ" && distance <= qSkill.range) return castLineTargetSkill(actor, "q", target.position);
+    if (qSkill.kind === "placeholderHeal" && actor.hp < actor.maxHp) return castSelfSkill(actor, "q");
     if (qSkill.kind === "yasuoQ" || qSkill.kind === "yasuoQ3") {
       const qTarget = targetableLineCellsForAi(actor, qSkill).find((cell) => targetsOnCells(actor, yasuoLineCells(actor, qSkill, cell)).length);
       if (qTarget) return castLineTargetSkill(actor, "q", qTarget);
@@ -3197,9 +3831,17 @@ async function runEnemyTurn(actor) {
     const rTarget = targetableEnemiesForSkill(actor, rSkill).sort((a, b) => hexDistance(actor.position, a.position) - hexDistance(actor.position, b.position))[0];
     if (rTarget) return castTargetSkill(actor, "r", rTarget);
   }
+  if (rSkill?.kind === "velkozR" && skillUsable(actor, "r") && distance <= rSkill.range) return castFreeRaySkill(actor, "r", hexToPixel(target.position));
+  if (rSkill?.kind === "jannaR" && skillUsable(actor, "r") && distance <= rSkill.range && actor.hp < actor.maxHp) return castSelfSkill(actor, "r");
+  if (rSkill?.kind === "placeholderAdvance" && skillUsable(actor, "r")) return castSelfSkill(actor, "r");
   const incoming = findIncomingProjectile(actor);
   if (incoming && actor.skills.w?.kind === "windWall" && skillUsable(actor, "w")) return castDirectionSkill(actor, "w", directionToward(actor.position, incoming.pos) || DIRECTIONS[3]);
   const eSkill = getEffectiveSkill(actor, "e");
+  if (eSkill?.kind === "jannaE" && skillUsable(actor, "e")) {
+    const ally = allAlive(actor.team).filter((candidate) => hexDistance(actor.position, candidate.position) <= eSkill.range && !getStatus(candidate, "shield")).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+    if (ally) return castAllyTargetSkill(actor, "e", ally);
+  }
+  if (eSkill?.kind === "velkozE" && skillUsable(actor, "e") && distance <= eSkill.range) return castPointSkill(actor, "e", target.position);
   if (eSkill?.kind === "yasuoE3" && skillUsable(actor, "e") && distance <= eSkill.range) return castSelfSkill(actor, "e");
   if (eSkill?.kind === "yasuoE" && skillUsable(actor, "e")) {
     const eTarget = targetableLineCellsForAi(actor, eSkill).find((cell) => targetsOnCells(actor, yasuoLineCells(actor, eSkill, cell)).length);
@@ -3207,6 +3849,9 @@ async function runEnemyTurn(actor) {
   }
   if (eSkill?.kind === "spin" && skillUsable(actor, "e") && distance <= eSkill.range) return castSelfSkill(actor, "e");
   if (eSkill?.kind === "zone" && skillUsable(actor, "e") && distance <= eSkill.range) return castPointSkill(actor, "e", target.position);
+  const wSkill = getEffectiveSkill(actor, "w");
+  if (wSkill?.kind === "jannaW" && skillUsable(actor, "w") && distance <= wSkill.range) return castTargetSkill(actor, "w", target);
+  if (wSkill?.kind === "velkozW" && skillUsable(actor, "w") && distance <= wSkill.range) return castFixedLineSkill(actor, "w", hexToPixel(target.position));
   return enemyMoveOrWait(actor, target);
 }
 
@@ -3231,6 +3876,9 @@ function dealDamage(source, target, amount, reason, options = {}) {
   let remaining = amount;
   const mfBonus = applyMissFortuneTargetPassive(source, target, amount, options);
   if (mfBonus > 0) remaining += mfBonus;
+  if (source?.heroKey === "velkoz" && hasStatus(target, "velkozResearched") && !options.ignoreVelkozResearch) {
+    remaining = Math.round(remaining * 1.5);
+  }
   if (hasStatus(target, "sleep")) {
     remaining *= 2;
     removeStatus(target, "sleep");
@@ -3259,8 +3907,24 @@ function dealDamage(source, target, amount, reason, options = {}) {
   } else {
     recordDamageLog(source, target, incoming, { reason, blocked: true, type: isBasicAttackReason(reason) ? "attack" : "skill" });
   }
-  if (options.skillDamage && source?.heroKey === "lux" && target.isAlive) applyStatus(target, "illumination", 3, { sourceId: source.id });
+  if (options.skillDamage && source?.heroKey === "lux" && target.isAlive && target.hp > 0) applyStatus(target, "illumination", 3, { sourceId: source.id });
+  if (options.skillDamage && source?.heroKey === "velkoz" && target.isAlive && target.hp > 0 && options.velkozPassive !== false) applyVelkozDeconstruction(source, target);
   if (target.hp <= 0) killCharacter(target, source);
+}
+
+function applyVelkozDeconstruction(source, target) {
+  if (!source || !target?.isAlive || hasStatus(target, "velkozResearched")) return;
+  const current = getStatus(target, "velkozDeconstruction");
+  const stacks = (current?.stacks || 0) + 1;
+  if (stacks < 3) {
+    applyStatus(target, "velkozDeconstruction", Infinity, { sourceId: source.id, stacks });
+    addFloating(target.position, `解构 ${stacks}`, "control");
+    return;
+  }
+  removeStatus(target, "velkozDeconstruction");
+  dealDamage(source, target, 33, "有机体解构", { velkozPassive: false, ignoreVelkozResearch: true });
+  if (target.isAlive) applyStatus(target, "velkozResearched", 2, { sourceId: source.id });
+  addFloating(target.position, "研究", "control");
 }
 
 function isBasicAttackReason(reason) {
@@ -3327,7 +3991,10 @@ function applyStatus(target, type, duration, extra = {}) {
 
 function applyShield(target, amount, duration, extra = {}) {
   const source = extra.sourceId ? getCharacter(extra.sourceId) : target;
-  const existing = getStatus(target, "shield");
+  const shields = target.statuses.filter((status) => status.type === "shield" && status.remaining > 0);
+  const existing = extra.attackBonus
+    ? shields.find((status) => status.attackBonus && status.sourceId === extra.sourceId && status.skillName === extra.skillName)
+    : shields.find((status) => !status.attackBonus);
   if (existing) {
     existing.amount = Math.max(existing.amount, amount);
     existing.remaining = Math.max(existing.remaining, duration);
@@ -3366,6 +4033,7 @@ function skillUsable(actor, key) {
   if ((currentSkill.kind === "dash" || currentSkill.kind === "yasuoE") && hasStatus(actor, "root")) return false;
   if ((currentSkill.kind === "flash" || currentSkill.kind === "zoeR") && hasStatus(actor, "root")) return false;
   if (actor.heroKey === "lux" && key === "e" && getLuxField(actor)) return true;
+  if (actor.heroKey === "janna" && key === "q" && getJannaTornado(actor)) return true;
   if (actor.heroKey === "zoe" && key === "q" && activeZoeQStar(actor)) return actor.temp.zoeQRecastUntil >= state.battleTick;
   return currentSkill.currentCooldown <= 0 || (actor.heroKey === "zoe" && key === "q" && actor.temp.zoeQRecastUntil >= state.battleTick);
 }
@@ -3393,7 +4061,16 @@ function effectiveActionSpeed(character) {
   state.zones.forEach((zone) => {
     if (!zone.removed && zone.slow && zone.team !== character.team && getZoneCells(zone).some((cell) => coordsEqual(cell, character.position))) speed *= 1 - zone.slow;
   });
+  const hasTailwind = state.characters.some((source) => source.isAlive && source.heroKey === "janna" && source.team === character.team && source.id !== character.id && hexDistance(source.position, character.position) <= 2);
+  if (hasTailwind) speed *= 1.1;
   return speed;
+}
+
+function effectiveAttackDamage(character) {
+  const shieldBonus = character.statuses
+    .filter((status) => status.type === "shield" && status.remaining > 0 && status.amount > 0)
+    .reduce((max, status) => Math.max(max, status.attackBonus || 0), 0);
+  return character.attackDamage + shieldBonus;
 }
 
 function missFortunePassiveInfo(character) {
@@ -3860,7 +4537,7 @@ function inferLogTypeFromText(text) {
   if (raw.includes("护盾")) return "shield";
   if (raw.includes("治疗")) return "heal";
   if (raw.includes("攻击") || raw.includes("普攻")) return "attack";
-  const skillTerms = ["法术碎片", "技能", "领域", "光辉", "飞星", "气泡", "陷阱", "风墙", "弹幕", "枪林弹雨", "弹雨", "一箭双雕", "终极闪光", "棱光护盾", "斩钢闪", "踏前斩", "折返跃迁", "消散", "消失", "达到最大距离"];
+  const skillTerms = ["法术碎片", "技能", "领域", "光辉", "飞星", "气泡", "陷阱", "风墙", "弹幕", "枪林弹雨", "弹雨", "一箭双雕", "终极闪光", "棱光护盾", "斩钢闪", "踏前斩", "折返跃迁", "龙卷风", "季风", "裂隙", "解构", "射线", "消散", "消失", "达到最大距离"];
   if (skillTerms.some((term) => raw.includes(term))) return "skill";
   return "action";
 }
@@ -3948,7 +4625,13 @@ function recordDamageLog(source, target, value, options = {}) {
   const pending = state.pendingLog && state.pendingLog.actorId === source.id ? state.pendingLog : null;
   if (pending) {
     pending.type = pending.type === "attack" ? "attack" : "skill";
-    pending.results.push(result);
+    const existing = pending.results.find((item) => item.targetId === result.targetId && item.kind === "damage");
+    if (existing) {
+      existing.value += result.value;
+      existing.blocked = existing.blocked && result.blocked;
+    } else {
+      pending.results.push(result);
+    }
     return;
   }
   const type = options.type || (isBasicAttackReason(options.reason) ? "attack" : "skill");
@@ -4137,6 +4820,11 @@ function getChannelStatus(character) {
 function getLuxField(actor) {
   if (!actor) return null;
   return state.zones.find((zone) => !zone.removed && zone.effect === "luxField" && zone.ownerId === actor.id);
+}
+
+function getJannaTornado(actor) {
+  if (!actor) return null;
+  return state.zones.find((zone) => !zone.removed && zone.effect === "jannaTornado" && zone.ownerId === actor.id);
 }
 
 function findChannelZone(character, channel = getChannelStatus(character)) {
